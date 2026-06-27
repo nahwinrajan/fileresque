@@ -1,0 +1,18 @@
+[workspace]
+members = [
+    "src-tauri",
+    "crates/core",
+    "crates/disk",
+    "crates/recovery",
+]
+resolver = "2"
+
+[workspace.dependencies]
+# DEPENDENCY JUSTIFICATION: serde — canonical serialisation for Tauri IPC payloads
+serde = { version = "1", features = ["derive"] }
+# DEPENDENCY JUSTIFICATION: serde_json — JSON encoding used in tests and Tauri context
+serde_json = "1"
+# DEPENDENCY JUSTIFICATION: tokio — async runtime; Tauri 2 uses it internally (DECISION-005)
+tokio = { version = "1", features = ["full"] }
+# DEPENDENCY JUSTIFICATION: thiserror — derive-based error types replacing manual Display impls
+thiserror = "2"

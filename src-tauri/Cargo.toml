@@ -1,0 +1,24 @@
+[package]
+name = "fileresque"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "fileresque_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# DEPENDENCY JUSTIFICATION: tauri — desktop app framework (DECISION-001)
+tauri = { version = "2", features = [] }
+# DEPENDENCY JUSTIFICATION: tauri-plugin-shell — allows opening system URLs; included in
+# default Tauri 2 project; shell:allow-open capability is listed in capabilities/default.json
+tauri-plugin-shell = "2"
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+fileresque-core = { path = "../crates/core" }
+fileresque-disk = { path = "../crates/disk" }
+fileresque-recovery = { path = "../crates/recovery" }

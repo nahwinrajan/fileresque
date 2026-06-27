@@ -1,0 +1,53 @@
+/* FileResque — Global Styles */
+/* Import order: tokens → reset → typography → layout */
+
+@import "./lib/styles/tokens.css";
+
+/* Box-sizing reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Base */
+html {
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-base);
+  min-width: 900px;
+  min-height: 600px;
+  overflow: hidden; /* Tauri native window — no scroll on body */
+  user-select: none; /* Desktop app — prevent accidental text selection */
+}
+
+/* Allow text selection in data areas (file table, paths, etc.) */
+.selectable {
+  user-select: text;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-layer);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-bg-surface-3);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-bg-surface-4);
+}

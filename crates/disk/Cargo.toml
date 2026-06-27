@@ -1,0 +1,10 @@
+[package]
+name = "fileresque-disk"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fileresque-core = { path = "../core" }
+serde = { workspace = true }
+tokio = { workspace = true }
+thiserror = { workspace = true }
