@@ -3,6 +3,10 @@
 > This file is read automatically by Claude on every interaction in this project.  
 > For full context, read `CONTEXT.md`. For task list, read `docs/features/feature-breakdown-phases.md`.
 
+- Use `skills/caveman` level ultra when communicating with me.
+- Use `skills/fluid-animation.md` animation design when creating animation: what, when, how, where, why to animate.
+- Use `skills/humanizer` when creating content.
+
 ---
 
 ## What This Project Is

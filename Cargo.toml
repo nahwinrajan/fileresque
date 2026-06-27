@@ -7,6 +7,11 @@ members = [
 ]
 resolver = "2"
 
+# Declare `fuzzing` as a known cfg key so `#[cfg(fuzzing)]` (set by cargo-fuzz via
+# RUSTFLAGS='--cfg fuzzing') does not trigger `unexpected_cfgs` warnings.
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fuzzing)'] }
+
 [workspace.dependencies]
 # DEPENDENCY JUSTIFICATION: serde — canonical serialisation for Tauri IPC payloads
 serde = { version = "1", features = ["derive"] }

@@ -1,79 +1,135 @@
 <script lang="ts">
 import type { DiskInfo } from '$lib/types';
 import { formatBytes } from '$lib/utils/format';
-/**
- * DiskList — P1 placeholder
- *
- * Full implementation is deferred to P1-T03. This stub renders a selectable
- * list of disk cards (or an empty state) so that the design-system layout can
- * be validated without real disk data.
- */
-import { Database, HardDrive, Lock, LockOpen, Usb } from 'lucide-svelte';
+import { invoke } from '@tauri-apps/api/core';
+import { AlertCircle, Cpu, Disc3, HardDrive, RefreshCw, Server, Usb } from 'lucide-svelte';
 import Badge from './Badge.svelte';
+import Button from './Button.svelte';
+import Card from './Card.svelte';
 
-const {
-  disks = [],
-  onselect,
-}: {
-  disks?: DiskInfo[];
+interface Props {
   onselect?: (disk: DiskInfo) => void;
-} = $props();
+}
 
-function handleSelect(disk: DiskInfo): void {
+const { onselect }: Props = $props();
+
+type DriveType = DiskInfo['drive_type'];
+type LoadState = 'loading' | 'error' | 'empty' | 'ready';
+
+let state = $state<LoadState>('loading');
+let disks = $state<DiskInfo[]>([]);
+let errorMessage = $state<string>('');
+let selectedId = $state<string | null>(null);
+
+async function loadDisks(): Promise<void> {
+  state = 'loading';
+  errorMessage = '';
+  try {
+    const result = await invoke<DiskInfo[]>('get_disks');
+    disks = result;
+    state = result.length === 0 ? 'empty' : 'ready';
+  } catch (err) {
+    errorMessage = err instanceof Error ? err.message : String(err);
+    state = 'error';
+  }
+}
+
+function selectDisk(disk: DiskInfo): void {
+  selectedId = disk.id;
   onselect?.(disk);
 }
 
-function handleKeydown(e: KeyboardEvent, disk: DiskInfo): void {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    handleSelect(disk);
-  }
+function driveTypeLabel(driveType: DriveType): string {
+  const labels: Record<DriveType, string> = {
+    SSD: 'SSD',
+    HDD: 'HDD',
+    NVMe: 'NVMe',
+    USB: 'USB',
+    Virtual: 'Virtual',
+    Unknown: 'Disk',
+  };
+  return labels[driveType] ?? 'Disk';
 }
+
+$effect(() => {
+  loadDisks();
+});
 </script>
 
-<div class="disk-list" aria-label="Available disks">
-  {#if disks.length === 0}
-    <div class="disk-list__empty" role="status">
-      <Database size={24} aria-hidden="true" class="disk-list__empty-icon" />
-      <p class="disk-list__empty-text">No disks found. Check permissions.</p>
+<div class="disk-list">
+  {#if state === 'loading'}
+    <div class="state-container">
+      {#each [0, 1, 2] as _}
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-icon"></div>
+          <div class="skeleton-lines">
+            <div class="skeleton-line skeleton-line--wide"></div>
+            <div class="skeleton-line skeleton-line--narrow"></div>
+          </div>
+        </div>
+      {/each}
+    </div>
+  {:else if state === 'error'}
+    <div class="state-container state-container--centered">
+      <AlertCircle size={32} color="var(--color-danger)" strokeWidth={1.5} />
+      <p class="state-message">
+        {errorMessage.includes('Permission') || errorMessage.includes('permission')
+          ? 'Full Disk Access is required. Grant access in System Settings → Privacy & Security.'
+          : 'Could not enumerate disks. Check that the app has the necessary permissions.'}
+      </p>
+      <Button variant="secondary" onclick={loadDisks}>
+        <RefreshCw size={14} strokeWidth={1.5} />
+        Retry
+      </Button>
+    </div>
+  {:else if state === 'empty'}
+    <div class="state-container state-container--centered">
+      <Disc3 size={32} color="var(--color-text-secondary)" strokeWidth={1.5} />
+      <p class="state-message">No disks found.</p>
     </div>
   {:else}
-    <ul class="disk-list__items" role="listbox" aria-label="Disk selection">
+    <ul class="disk-cards" role="listbox" aria-label="Available disks">
       {#each disks as disk (disk.id)}
-        <li role="option" aria-selected="false">
-          <button
-            class="disk-list__item"
-            type="button"
-            aria-label="Select {disk.display_name}"
-            onclick={() => handleSelect(disk)}
-            onkeydown={(e) => handleKeydown(e, disk)}
-          >
-            <span class="disk-list__item-icon" aria-hidden="true">
-              {#if disk.drive_type === 'HDD'}
-                <HardDrive size={20} />
-              {:else if disk.drive_type === 'USB'}
-                <Usb size={20} />
-              {:else}
-                <Database size={20} />
-              {/if}
-            </span>
-
-            <span class="disk-list__item-info">
-              <span class="disk-list__item-name">{disk.display_name}</span>
-              <span class="disk-list__item-meta">
-                <span class="disk-list__item-size">{formatBytes(disk.size_bytes)}</span>
-                <Badge variant="default">{disk.filesystem}</Badge>
+        {@const isSelected = selectedId === disk.id}
+        <li role="option" aria-selected={isSelected}>
+          <Card hoverable selected={isSelected} padding="md">
+            <button
+              class="disk-card-btn"
+              type="button"
+              aria-label="Select {disk.display_name}"
+              onclick={() => selectDisk(disk)}
+            >
+              <span class="disk-icon" aria-hidden="true">
+                {#if disk.drive_type === 'USB'}
+                  <Usb size={20} strokeWidth={1.5} color="var(--color-text-secondary)" />
+                {:else if disk.drive_type === 'NVMe'}
+                  <Cpu size={20} strokeWidth={1.5} color="var(--color-text-secondary)" />
+                {:else if disk.drive_type === 'Virtual'}
+                  <Server size={20} strokeWidth={1.5} color="var(--color-text-secondary)" />
+                {:else}
+                  <HardDrive size={20} strokeWidth={1.5} color="var(--color-text-secondary)" />
+                {/if}
               </span>
-            </span>
-
-            <span class="disk-list__item-lock" aria-label={disk.encrypted ? 'Encrypted' : 'Not encrypted'}>
-              {#if disk.encrypted}
-                <Lock size={16} />
-              {:else}
-                <LockOpen size={16} />
-              {/if}
-            </span>
-          </button>
+              <span class="disk-info">
+                <span class="disk-name">{disk.display_name}</span>
+                <span class="disk-meta">
+                  <span class="disk-size">{formatBytes(disk.size_bytes)}</span>
+                  <span class="disk-badges">
+                    <Badge variant="info">{driveTypeLabel(disk.drive_type)}</Badge>
+                    {#if disk.filesystem !== 'Unknown'}
+                      <Badge variant="default">{disk.filesystem}</Badge>
+                    {/if}
+                    {#if disk.encrypted}
+                      <Badge variant="warning">Encrypted</Badge>
+                    {/if}
+                    {#if disk.trim_enabled}
+                      <Badge variant="success">TRIM</Badge>
+                    {/if}
+                  </span>
+                </span>
+              </span>
+            </button>
+          </Card>
         </li>
       {/each}
     </ul>
@@ -82,106 +138,153 @@ function handleKeydown(e: KeyboardEvent, disk: DiskInfo): void {
 
 <style>
   .disk-list {
-    width: 100%;
-  }
-
-  /* ── Empty state ─────────────────────────────────────────── */
-  .disk-list__empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-3);
-    padding: var(--space-10);
-    color: var(--color-text-secondary);
-    text-align: center;
-  }
-
-  :global(.disk-list__empty-icon) {
-    color: var(--color-text-disabled);
-  }
-
-  .disk-list__empty-text {
-    font-family: var(--font-family);
-    font-size: var(--font-size-md);
-    color: var(--color-text-secondary);
-    margin: 0;
-  }
-
-  /* ── List ────────────────────────────────────────────────── */
-  .disk-list__items {
-    list-style: none;
-    margin: 0;
-    padding: 0;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
   }
 
-  /* ── Item button ─────────────────────────────────────────── */
-  .disk-list__item {
+  .disk-cards {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .disk-cards li {
+    display: contents;
+  }
+
+  .disk-card-btn {
     display: flex;
     align-items: center;
     gap: var(--space-3);
     width: 100%;
-    padding: var(--space-3) var(--space-4);
-    background: var(--color-bg-surface);
+    background: none;
     border: none;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-outset);
+    padding: 0;
     cursor: pointer;
+    color: inherit;
     text-align: left;
   }
 
-  .disk-list__item:hover {
-    background: var(--color-bg-surface-2);
-  }
-
-  .disk-list__item:focus-visible {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
-  }
-
-  .disk-list__item-icon {
-    display: inline-flex;
-    color: var(--color-text-secondary);
+  .disk-icon {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background: var(--color-bg-layer);
+    box-shadow: var(--shadow-inset);
   }
 
-  .disk-list__item-info {
+  .disk-info {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
-    flex: 1;
     min-width: 0;
   }
 
-  .disk-list__item-name {
-    font-family: var(--font-family);
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-semibold);
+  .disk-name {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     color: var(--color-text-dim);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .disk-list__item-meta {
+  .disk-meta {
     display: flex;
     align-items: center;
     gap: var(--space-2);
+    flex-wrap: wrap;
   }
 
-  .disk-list__item-size {
+  .disk-size {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
     font-family: var(--font-mono);
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-    font-variant-numeric: tabular-nums;
   }
 
-  .disk-list__item-lock {
-    display: inline-flex;
+  .disk-badges {
+    display: flex;
+    gap: var(--space-1);
+    flex-wrap: wrap;
+  }
+
+  .state-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-2);
+  }
+
+  .state-container--centered {
+    align-items: center;
+    padding: var(--space-8) var(--space-4);
+    text-align: center;
+  }
+
+  .state-message {
     color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+    margin: 0;
+    max-width: 320px;
+  }
+
+  .skeleton-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-outset);
+  }
+
+  .skeleton-icon {
     flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background: var(--color-bg-layer);
+    box-shadow: var(--shadow-inset);
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  .skeleton-lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .skeleton-line {
+    height: 10px;
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-layer);
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  .skeleton-line--wide {
+    width: 60%;
+  }
+
+  .skeleton-line--narrow {
+    width: 35%;
+  }
+
+  @keyframes shimmer {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 0.7;
+    }
   }
 </style>

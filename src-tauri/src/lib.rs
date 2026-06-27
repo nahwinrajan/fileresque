@@ -14,7 +14,10 @@ mod commands;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![commands::greet])
+        .invoke_handler(tauri::generate_handler![
+            commands::get_disks,
+            commands::check_disk_access
+        ])
         .run(tauri::generate_context!())
         // JUSTIFIED: unrecoverable — Tauri runtime failure means the process cannot continue
         .expect("error while running tauri application");

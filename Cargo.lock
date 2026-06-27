@@ -790,10 +790,13 @@ dependencies = [
 name = "fileresque-disk"
 version = "0.1.0"
 dependencies = [
+ "byteorder",
  "fileresque-core",
+ "plist",
  "serde",
  "thiserror 2.0.18",
  "tokio",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

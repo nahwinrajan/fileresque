@@ -8,3 +8,27 @@ fileresque-core = { path = "../core" }
 serde = { workspace = true }
 tokio = { workspace = true }
 thiserror = { workspace = true }
+# DEPENDENCY JUSTIFICATION: byteorder — safe little-endian integer reads from raw NTFS
+# disk buffers via Cursor; eliminates any need for unsafe transmute of #[repr(C)]
+# structs. Not platform-gated because NTFS parser tests run on macOS CI (cfg(test)).
+byteorder = "1"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+# DEPENDENCY JUSTIFICATION: plist — parses Apple XML plist format output from diskutil;
+# no alternative in std or already-approved crates for this Apple-specific format
+plist = "1"
+
+# DEPENDENCY JUSTIFICATION: windows-sys provides thin zero-overhead bindings to
+# Win32 APIs required for disk enumeration (CreateFileW, DeviceIoControl,
+# IOCTL_STORAGE_QUERY_PROPERTY). It is preferred over the `wmi` crate which
+# pulls in a heavy transitive dependency tree, and over `winapi` which is
+# superseded by windows-sys in the windows-rs ecosystem.
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Ioctl",
+    "Win32_System_IO",
+    "Win32_Security",
+    "Win32_Devices_DeviceAndDriverInstallation",
+] }

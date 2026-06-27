@@ -43,7 +43,7 @@ rustup component add clippy rustfmt
 cargo install cargo-llvm-cov cargo-audit cargo-deny
 
 # Install frontend dependencies
-npm install
+bun install
 
 # Run in development mode
 make dev

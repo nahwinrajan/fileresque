@@ -1,6 +1,9 @@
 <script lang="ts">
 // P0-T01 placeholder — replaced by P1-T03 DiskList view
+import { PermissionGate } from '$lib/components/index.js';
 </script>
+
+<PermissionGate />
 
 <main class="app-shell">
   <div class="titlebar" data-tauri-drag-region aria-label="FileResque title bar">
