@@ -7,9 +7,6 @@ use super::structs::{
 };
 pub(crate) use super::structs::CatalogDeletedFile;
 
-/// Minimum BTNodeDescriptor size: fLink(4) + bLink(4) + kind(1) + height(1) + numRecords(2) + reserved(2)
-const BT_NODE_DESCRIPTOR_SIZE: u64 = 14;
-
 /// Offset of modifyDate within an HFS+ catalog file record (after the 2-byte record type).
 /// HFSPlusCatalogFile layout (offsets from record start):
 ///   0   recordType (i16)
@@ -53,7 +50,9 @@ pub(crate) fn read_extents_from_device(
             .seek(SeekFrom::Start(offset))
             .map_err(AppError::Io)?;
         let prev_len = data.len();
-        data.resize(prev_len + length as usize, 0u8);
+        let length_usize = usize::try_from(length)
+            .map_err(|_| AppError::Internal("extent too large for address space".to_string()))?;
+        data.resize(prev_len + length_usize, 0u8);
         device
             .read_exact(&mut data[prev_len..])
             .map_err(AppError::Io)?;
@@ -140,9 +139,8 @@ pub(crate) fn walk_catalog_leaves(
         let node_buf = &catalog_data[node_start..node_start + ns];
 
         let result = process_catalog_node(node_buf, ns, alloc_bitmap);
-        match result {
-            Ok(mut files) => candidates.append(&mut files),
-            Err(_) => continue, // skip malformed nodes
+        if let Ok(mut files) = result {
+            candidates.append(&mut files);
         }
     }
 
@@ -405,9 +403,10 @@ mod tests {
 
         let cases = vec![
             (
+                // 0xDA00_0000 = 3_657_433_088 HFS+ secs → unix 1_574_588_288 (Nov 2019)
                 "hfs_time_conversion_valid",
                 Input {
-                    hfs_time: 0x7C25_B080,
+                    hfs_time: 0xDA00_0000,
                 },
                 Expected {
                     is_some: true,

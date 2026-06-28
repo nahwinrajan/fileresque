@@ -1,6 +1,7 @@
-// Compiled on Windows production builds, on all platforms during tests,
-// and when building fuzz targets (cargo-fuzz sets --cfg fuzzing).
-#![cfg(any(target_os = "windows", test, fuzzing))]
+// Compiled on Windows production builds and on all platforms during tests.
+// Parsing logic is pure byte manipulation with no OS-specific code; only
+// `scan_mft` (further gated with `cfg(target_os = "windows")`) performs I/O.
+#![cfg(any(target_os = "windows", test))]
 
 use byteorder::{ReadBytesExt, LE};
 use fileresque_core::error::AppError;
@@ -426,6 +427,8 @@ pub(crate) fn find_best_file_name(buf: &[u8], record: &MftRecord) -> Option<File
 ///
 /// Returns `None` when no usable $FILE_NAME attribute is found.
 /// `extents` is left empty for this MVP — NTFS data-run parsing is deferred.
+// Called by scan_mft (Windows production); compiled in test mode on macOS.
+#[allow(dead_code)]
 pub(crate) fn extract_deleted_entry(
     buf: &[u8],
     record: &MftRecord,

@@ -174,3 +174,33 @@
 **Decision:** B — Bun + Biome
 **Rationale:** User-directed. Biome replaces both ESLint and Prettier with a single, fast, zero-config-by-default tool. Bun replaces pnpm as the package manager and script runner. Reduces toolchain surface area.
 **Consequences:** `package.json` scripts use `biome check`, `biome format`, `biome ci`. `Makefile` uses `bun` throughout. `tauri.conf.json` `beforeDevCommand`/`beforeBuildCommand` use `bun`. No `.eslintrc`, no `.prettierrc` — `biome.json` is the single JS/TS style config. `@biomejs/biome` is the only linting/formatting devDependency. All CI lint steps use `bun biome ci .`.
+
+---
+
+## [DECISION-013] — Build Toolchain Peer-Version Pinning (vite ↔ vite-plugin-svelte)
+
+**Date:** 2026-06-27
+**Decided by:** User (recorded by TPM)
+**Context:** P2 shipped with `@sveltejs/vite-plugin-svelte@4.0.4` while `vite@6.4.3` was installed. The plugin's peer range is `vite: ^5.0.0` — a silent major mismatch. The result was two separate Svelte runtime instances in the bundle: the compiler injected `svelte/internal/client` (which owns the component context) from one copy, while user code's `import { onDestroy } from 'svelte'` resolved to the other. The public-API copy read a `null` component context → `TypeError: Cannot read properties of null (reading 'r')` on mount → the entire page rendered blank. The failure reproduced in BOTH the dev server and the production `rollup` build, and was invisible to `vitest` (which runs in jsdom with the `svelteTesting` browser condition and never exercises the real Vite build path).
+**Options considered:**
+- A: Pin nothing; let `^` ranges float and fix breakage reactively
+- B: Treat the `vite` ↔ `vite-plugin-svelte` major versions as a coupled pair that must be verified on every bump
+**Decision:** B — peer-version coupling is a hard rule
+**Rationale:** A silent peer-dependency major mismatch produced a total, app-wide runtime crash with a cryptic error far removed from its cause. Lockfile pinning alone is insufficient because a future `bun update` or `vite` bump can reintroduce the skew. The constraint must be written down so any agent touching the build toolchain checks it deliberately.
+**Rule:** `@sveltejs/vite-plugin-svelte` major MUST satisfy the installed `vite` major (vite 6 → plugin ≥ 5; vite 7 → plugin ≥ 6). On any bump of `vite`, `svelte`, `@sveltejs/kit`, or `@sveltejs/vite-plugin-svelte`, verify the `peerDependencies` ranges of all four against the installed versions BEFORE marking the task done. The canonical symptom of a violation is `Cannot read properties of null (reading 'r')` (dual Svelte runtime instance) — a blank page on mount.
+**Consequences:** Resolved by upgrading to `@sveltejs/vite-plugin-svelte@5.1.1`. The QA gate now includes a runtime smoke check (see DECISION-014) so a dual-instance regression cannot pass review on green unit tests alone.
+
+---
+
+## [DECISION-014] — QA Gate Requires a Mechanical Runtime Smoke Check with Evidence
+
+**Date:** 2026-06-27
+**Decided by:** User (recorded by TPM)
+**Context:** P2 passed implementation with green `cargo test` and `vitest` suites, yet `make dev` produced a blank window (two independent defects: the DECISION-013 dual-Svelte crash, and an 8-byte stub `icon.icns` that panicked Tauri startup). The QA agent definition already required "happy path works end-to-end in dev build" (qa.md), but it was a soft checkbox with no required artifact, so it was tickable without ever launching the app. Unit tests are necessary but not sufficient: jsdom + `svelteTesting` resolves Svelte differently than the real Vite/Tauri build, so the exact failing path was never executed.
+**Options considered:**
+- A: Rely on the QA agent's diligence to actually run the dev build (status quo)
+- B: Convert the runtime check from a judgment-call checkbox into a mechanical, evidence-producing gate
+**Decision:** B — the runtime gate must be mechanical and falsifiable
+**Rationale:** "Trust the reviewer to remember" is exactly what failed. A checkbox can be rationalised; a build artifact cannot. The fix is to make "the app actually boots and renders" an executable check that emits proof (a screenshot of the mounted root UI + an assertion of zero console errors), and to require that proof in the sign-off. Green unit tests are downgraded from "sufficient for sign-off" to "necessary but not sufficient."
+**Rule:** No QA sign-off without (1) the app launching and rendering its root UI, verified by an executable smoke check, not visual inspection alone, and (2) a captured artifact (screenshot + console-error log showing zero errors) referenced in the `## QA Sign-off` block. Unit/coverage gates remain mandatory but never substitute for the runtime check.
+**Consequences:** `make smoke` added (boots the dev server, loads it headless, asserts the root element is present and the console is error-free). `qa.md` and the CLAUDE.md Task Completion Checklist updated to require the smoke artifact. Applies retroactively: P2 tasks must pass `make smoke` before their QA gate is closed.

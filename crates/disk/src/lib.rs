@@ -1,5 +1,7 @@
 #![deny(clippy::all, clippy::pedantic, warnings)]
 #![allow(clippy::module_name_repetitions)]
+// Internal field-layout comments use "field_name(N)" notation — backticks not needed.
+#![allow(clippy::doc_markdown)]
 
 #[cfg(target_os = "macos")]
 pub mod macos;

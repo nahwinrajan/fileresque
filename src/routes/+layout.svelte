@@ -1,7 +1,9 @@
 <script lang="ts">
 import '../app.css';
 import { gsap } from 'gsap';
-import { onMount } from 'svelte';
+import { onMount, type Snippet } from 'svelte';
+
+const { children }: { children: Snippet } = $props();
 
 onMount(() => {
   // Respect reduced motion preference for all GSAP animations globally (WCAG 2.5.3)
@@ -11,4 +13,4 @@ onMount(() => {
 });
 </script>
 
-<slot />
+{@render children()}

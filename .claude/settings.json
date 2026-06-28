@@ -31,7 +31,25 @@
 			"Bash(ssh:*)",
 			"Bash(scp:*)",
 			"Bash(nc:*)",
-			"Bash(ncat:*)"
+			"Bash(ncat:*)",
+			"Bash(make dev:*)",
+			"Bash(make build:*)",
+			"Bash(bun tauri dev:*)",
+			"Bash(bun tauri build:*)",
+			"Bash(cargo run:*)",
+			"Bash(diskutil:*)",
+			"Bash(dd:*)",
+			"Bash(sudo:*)"
 		]
-	}
+	},
+	"hooks": {
+		"PreToolUse": [
+			{
+				"matcher": "Bash",
+				"hooks": [
+					{ "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-disk.py\"" }
+				]
+			}
+		]
+  	}
 }

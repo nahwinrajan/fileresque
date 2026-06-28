@@ -224,7 +224,8 @@ pub(crate) fn parse_apfs_superblock(buf: &[u8]) -> Result<ApfsSuperblock, AppErr
     // apfs_volname: 256 bytes, null-terminated UTF-8
     let mut name_buf = vec![0u8; 256];
     {
-        let pos = cur.position() as usize;
+        let pos = usize::try_from(cur.position())
+            .map_err(|_| AppError::Internal("cursor position overflow".to_string()))?;
         let available = buf.len().saturating_sub(pos);
         let copy_len = name_buf.len().min(available);
         name_buf[..copy_len].copy_from_slice(&buf[pos..pos + copy_len]);
@@ -482,10 +483,10 @@ fn walk_fs_node(
 
     if level == 0 {
         // Leaf: scan for INODE records with nlink == 0
-        scan_fs_leaf_node(&buf, nkeys, tx)?;
+        scan_fs_leaf_node(&buf, nkeys, tx);
     } else {
         // Internal: iterate child pointers
-        walk_fs_internal_node(reader, &buf, nkeys, tx, depth)?;
+        walk_fs_internal_node(reader, &buf, nkeys, tx, depth);
     }
 
     Ok(())
@@ -498,7 +499,7 @@ fn walk_fs_internal_node(
     nkeys: u32,
     tx: &mpsc::Sender<DeletedFileEntry>,
     depth: u8,
-) -> Result<(), AppError> {
+) {
     // FS B-tree internal node values are virtual OIDs (8 bytes each).
     // The key area uses variable-length keys in the FS B-tree, so we cannot
     // do a simple arithmetic layout here. Apple uses a table-of-contents
@@ -534,7 +535,6 @@ fn walk_fs_internal_node(
     }
 
     let _ = nkeys; // nkeys used for direction — actual traversal above is heuristic
-    Ok(())
 }
 
 /// Scan an FS B-tree leaf node for INODE records with nlink == 0.
@@ -546,9 +546,9 @@ fn scan_fs_leaf_node(
     buf: &[u8],
     nkeys: u32,
     tx: &mpsc::Sender<DeletedFileEntry>,
-) -> Result<(), AppError> {
+) {
     if buf.len() < 80 {
-        return Ok(());
+        return;
     }
 
     // Walk the buffer 8 bytes at a time looking for plausible INODE keys.
@@ -559,22 +559,17 @@ fn scan_fs_leaf_node(
     let mut offset = 72usize;
     while offset + 8 <= buf.len() {
         let mut kc = Cursor::new(&buf[offset..offset + 8]);
-        let obj_id_and_type = match kc.read_u64::<LE>() {
-            Ok(v) => v,
-            Err(_) => break,
-        };
+        let Ok(obj_id_and_type) = kc.read_u64::<LE>() else { break };
 
         if (obj_id_and_type & type_mask) == inode_type_mask {
             let inode_id = obj_id_and_type & !(type_mask);
             // Try to read the inode value immediately following the 8-byte key
-            if let Some(entry) =
-                try_parse_inode_value(buf, offset + 8, inode_id)
-            {
+            if let Some(entry) = try_parse_inode_value(buf, offset + 8, inode_id) {
                 if entry.nlink == 0 {
                     let deleted = inode_to_deleted_entry(entry);
                     // Non-blocking try_send — if receiver is gone, stop sending
                     if tx.try_send(deleted).is_err() {
-                        return Ok(());
+                        return;
                     }
                 }
             }
@@ -584,7 +579,6 @@ fn scan_fs_leaf_node(
     }
 
     let _ = nkeys;
-    Ok(())
 }
 
 /// Attempt to parse an inode value record starting at `offset` within `buf`.

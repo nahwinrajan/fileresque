@@ -24,7 +24,7 @@ pub async fn scan_apfs(
     disk_id: String,
     tx: mpsc::Sender<DeletedFileEntry>,
 ) -> Result<(), AppError> {
-    tokio::task::spawn_blocking(move || scan_apfs_sync(&disk_id, tx))
+    tokio::task::spawn_blocking(move || scan_apfs_sync(&disk_id, &tx))
         .await
         .map_err(|e| AppError::Internal(format!("spawn_blocking panic: {e}")))?
 }
@@ -40,7 +40,7 @@ pub async fn scan_apfs(
 /// - [`AppError::Internal`] on malformed on-disk structures
 pub fn scan_apfs_sync(
     disk_id: &str,
-    tx: mpsc::Sender<DeletedFileEntry>,
+    tx: &mpsc::Sender<DeletedFileEntry>,
 ) -> Result<(), AppError> {
     let raw_device = disk_id_to_raw_device(disk_id)?;
     let mut reader = BlockReader::open(&raw_device)?;
@@ -53,7 +53,7 @@ pub fn scan_apfs_sync(
     reader.block_size = nx_sb.block_size;
 
     for &fs_oid in &nx_sb.fs_oids {
-        if let Err(e) = scan_volume(&mut reader, &nx_sb, fs_oid, &tx) {
+        if let Err(e) = scan_volume(&mut reader, &nx_sb, fs_oid, tx) {
             // Log individual volume failures but continue with remaining volumes
             eprintln!("[FileResque] APFS volume OID {fs_oid} scan error: {e}");
         }

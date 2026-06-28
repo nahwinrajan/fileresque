@@ -131,6 +131,8 @@
   --color-border-subtle:    rgba(255, 255, 255, 0.06);
   /** Standard component border (inputs, cards in focus) */
   --color-border-default:   rgba(255, 255, 255, 0.10);
+  /** Canonical alias — use --color-border everywhere; maps to --color-border-default */
+  --color-border:           rgba(255, 255, 255, 0.10);
   /** Accent border (focused input, selected card) */
   --color-border-accent:    #0084ff;
   /** Danger border (error input) */

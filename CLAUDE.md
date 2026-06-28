@@ -98,6 +98,7 @@ Copy into every planning doc before marking Done:
 - [ ] `cargo fmt` — clean
 - [ ] Cognitive complexity ≤ 15 on all new functions
 - [ ] Unit tests written (table-driven); coverage ≥ 80%
+- [ ] `make smoke` — PASS (app mounts, 0 console errors) for any task touching UI/build — green unit tests do NOT substitute
 - [ ] No `unwrap()`/`expect()` without `// JUSTIFIED:`
 - [ ] All `unsafe` blocks have `// SAFETY:`
 - [ ] Planning doc updated with `## Implementation Notes`

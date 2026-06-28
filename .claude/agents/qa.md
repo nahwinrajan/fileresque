@@ -26,11 +26,18 @@ Append to the planning doc (`docs/agent-planning/<seq>-<phase>-<subtask>.md`):
 **Date:** YYYY-MM-DD
 **Coverage:** Rust X.X% | Frontend X.X%
 **Tests run:** cargo test (N passed, 0 failed) | vitest (N passed, 0 failed)
+**Smoke:** make smoke → PASS (artifact: .smoke/app.png, console.log clean)
 **Edge cases verified:** EC-01 ✅ | EC-04 ✅ | (list applicable ones)
 **Clippy:** 0 warnings
 **Regressions:** None detected
 **Status:** ✅ PASSED | ❌ FAILED — [reason]
 ```
+
+> **Green unit tests are necessary but NOT sufficient.** `vitest` runs in jsdom and
+> resolves Svelte differently than the real Vite/Tauri build — it can pass while the
+> app renders a blank page (see DECISION-013/014). A sign-off without a passing
+> `make smoke` and its captured artifact is invalid. Do not tick the runtime check
+> from inspection; run the command and paste the result.
 
 ## What You Check Before Sign-Off
 
@@ -51,6 +58,7 @@ Append to the planning doc (`docs/agent-planning/<seq>-<phase>-<subtask>.md`):
 - [ ] Keyboard navigation works (tab, enter, escape)
 
 ### Integration
+- [ ] `make smoke` → PASS (app mounts headless, zero console errors) — REQUIRED, mechanical, artifact captured. Never tick from inspection.
 - [ ] Task's happy path scenario works end-to-end in dev build
 - [ ] All applicable edge cases from research doc tested or explicitly deferred with reason
 

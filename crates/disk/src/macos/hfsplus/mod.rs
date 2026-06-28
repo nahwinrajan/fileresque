@@ -1,4 +1,5 @@
 use fileresque_core::{error::AppError, types::DeletedFileEntry};
+use std::io::{Read, Seek, SeekFrom};
 use std::time::{Duration, UNIX_EPOCH};
 use tokio::sync::mpsc;
 
@@ -43,7 +44,7 @@ fn to_deleted_entry(file: CatalogDeletedFile) -> DeletedFileEntry {
 /// invalid, or any I/O operation fails.
 pub fn scan_hfsplus_sync(
     disk_id: &str,
-    tx: mpsc::Sender<DeletedFileEntry>,
+    tx: &mpsc::Sender<DeletedFileEntry>,
 ) -> Result<(), AppError> {
     let raw_device = format!("/dev/r{disk_id}");
     let mut device = std::fs::File::open(&raw_device).map_err(|e| {
@@ -56,7 +57,6 @@ pub fn scan_hfsplus_sync(
 
     // HFS+ Volume Header is always at byte offset 1024.
     // Read 512 bytes starting at offset 1024.
-    use std::io::{Read, Seek, SeekFrom};
     device
         .seek(SeekFrom::Start(1024))
         .map_err(AppError::Io)?;
@@ -150,7 +150,7 @@ pub async fn scan_hfsplus(
     disk_id: String,
     tx: mpsc::Sender<DeletedFileEntry>,
 ) -> Result<(), AppError> {
-    tokio::task::spawn_blocking(move || scan_hfsplus_sync(&disk_id, tx))
+    tokio::task::spawn_blocking(move || scan_hfsplus_sync(&disk_id, &tx))
         .await
         .map_err(|e| AppError::Internal(format!("spawn_blocking panic: {e}")))?
 }

@@ -26,13 +26,17 @@ const EXTENT_COUNT: usize = 8;
 #[derive(Debug, Clone)]
 pub(crate) struct HfsPlusVolumeHeader {
     pub(crate) block_size: u32,
+    // Reserved for future probability-engine use (Phase 3):
+    #[allow(dead_code)]
     pub(crate) total_blocks: u32,
+    #[allow(dead_code)]
     pub(crate) free_blocks: u32,
     /// First 8 extents of the Allocation Bitmap File: (startBlock, blockCount)
     pub(crate) alloc_extents: Vec<(u32, u32)>,
     /// First 8 extents of the Catalog B*-tree File: (startBlock, blockCount)
     pub(crate) catalog_extents: Vec<(u32, u32)>,
     /// Logical size in bytes of the catalog file
+    #[allow(dead_code)]
     pub(crate) catalog_logical_size: u64,
 }
 

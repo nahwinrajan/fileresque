@@ -4,10 +4,10 @@ import { defineConfig } from 'vite';
 
 const host = process.env.TAURI_DEV_HOST;
 
-export default defineConfig({
-  // svelteTesting adds the 'browser' resolve condition for tests so that
-  // Svelte's client bundle is used instead of the SSR bundle.
-  plugins: [sveltekit(), svelteTesting()],
+export default defineConfig(({ mode }) => ({
+  // svelteTesting adds the 'browser' resolve condition for the jsdom test
+  // env; scope it to test mode only so it never alters the app build.
+  plugins: [sveltekit(), ...(mode === 'test' ? [svelteTesting()] : [])],
   clearScreen: false,
   server: {
     port: 5173,
@@ -38,4 +38,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
