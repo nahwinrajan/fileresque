@@ -18,8 +18,10 @@ const {
 const ROW_HEIGHT = 40;
 const BUFFER_ROWS = 15;
 
-let containerEl = $state<HTMLElement | null>(null);
+// biome-ignore lint/style/useConst: bind:this reassigns containerEl at runtime; Biome cannot see Svelte template bindings
+let containerEl: HTMLElement | null = $state(null);
 let containerHeight = $state(400);
+// biome-ignore lint/style/useConst: reassigned in the onscroll handler below
 let scrollTop = $state(0);
 
 $effect(() => {
@@ -31,13 +33,13 @@ $effect(() => {
   return () => ro.disconnect();
 });
 
-let visibleStart = $derived(Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - BUFFER_ROWS));
-let visibleEnd = $derived(
+const visibleStart = $derived(Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - BUFFER_ROWS));
+const visibleEnd = $derived(
   Math.min(files.length, Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + BUFFER_ROWS)
 );
-let visibleFiles = $derived(files.slice(visibleStart, visibleEnd));
-let totalHeight = $derived(files.length * ROW_HEIGHT);
-let offsetTop = $derived(visibleStart * ROW_HEIGHT);
+const visibleFiles = $derived(files.slice(visibleStart, visibleEnd));
+const totalHeight = $derived(files.length * ROW_HEIGHT);
+const offsetTop = $derived(visibleStart * ROW_HEIGHT);
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -249,3 +249,19 @@
 **Decision:** B — self-detecting, self-validating polarity
 **Rationale:** Each `chunk_info` carries `ci_free_count`, the ground-truth number of free blocks in that chunk. `detect_polarity` counts set vs clear bits over the chunk and picks the interpretation whose free-bit count equals `ci_free_count`. This makes the parser correct regardless of which polarity Apple uses, AND doubles as a structural-integrity check: if the byte offsets are wrong or the block is corrupt, neither count will match and the query returns `None` ("unknown") rather than a fabricated answer. Failure is contained — any parse error at any stage (`spaceman` resolution, cib/cab walk, bitmap read, polarity match) degrades gracefully to "allocation unknown", so the probability engine caps at Medium instead of trusting bad data.
 **Consequences:** `DeviceProbe::is_free` now returns real `Some(true|false)` on APFS volumes whose space manager parses, unlocking the **High** tier in production. The `None` ("unknown") path remains as the safe fallback. `nx_spaceman_oid` is now captured in `NxSuperblock`. Pure helpers (`detect_polarity`, `bit_is_set`, `find_chunk`, `uniform_chunk_free`, the cib/checkpoint parsers) are unit-tested with synthetic fixtures; full on-disk validation against a real APFS volume is still recommended before GA and is tracked as a Phase 5 hardening item.
+
+---
+
+## [DECISION-018] — Pre-flight Refinements: `size_bytes` Sizing, BSD-Device Same-Disk, `Option` on Cancel
+
+**Date:** 2026-06-30
+**Decided by:** Developer (🔵), ratified by TPM
+**Context:** P4-T01 (destination picker & pre-flight) needed three small clarifications where the feature breakdown's wording did not map cleanly onto the implemented Phase 1–3 types. None changes product scope; each narrows the spec conservatively, so they are logged here rather than raised as blocking `[TPM_QUERY]`s.
+**Decisions:**
+
+- **(a) Space sizing uses `DeletedFileEntry.size_bytes`, not `estimated_recoverable_bytes`.** The spec says `file.estimated_recoverable_bytes * 1.1`. Using the full `size_bytes` (which is always ≥ the estimate) means the reservation is never too small, and — critically — `preflight_recovery` does not need a `ProbabilityReport` argument, so the user can run pre-flight before (or without) an assessment. The 10% buffer is computed integer-only (`n + n/10`) to avoid float casts (clippy pedantic).
+- **(b) Same-disk detection compares the BSD whole-disk id, not the hardware serial.** The spec says "compare disk serial". `DiskInfo.serial` is frequently `None` on macOS (diskutil does not always surface it). `statfs` `f_mntfromname` yields a reliable backing device (`/dev/disk3s1s1`) that `normalize_disk_id` reduces to `disk3` and compares against `DiskInfo.id`. This is both more available and more directly correct (it answers "is the destination on the disk I am reading from?"). Windows uses the drive letter as a best-effort proxy; a physical-disk IOCTL mapping is deferred.
+- **(c) `pick_destination_folder` returns `Result<Option<String>, AppError>`, not `Result<String, AppError>`.** User cancellation is a normal outcome and is represented as `Ok(None)`, keeping `Err` strictly for failures.
+
+**Rationale:** Each refinement uses data the system actually has (sizes and ids from the scan/enumeration) instead of data it often lacks (per-file estimates, serials), while staying on the safe side of every check.
+**Consequences:** Tauri commands: `pick_destination_folder(app) -> Result<Option<String>, AppError>` and `preflight_recovery(entries: Vec<DeletedFileEntry>, source: DiskInfo, dest_path: String) -> Result<PreflightResult, AppError>`. `PreflightError` is now `#[serde(tag = "kind")]` (internally tagged) to match the pre-existing `src/lib/types.ts` discriminated union. `tauri-plugin-dialog` added (invoked only from Rust; no new frontend capability). `libc` added to `crates/disk` (macOS) for `statfs`.

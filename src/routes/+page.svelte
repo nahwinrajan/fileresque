@@ -1,11 +1,17 @@
 <script lang="ts">
 import Button from '$lib/components/Button.svelte';
-import { DiskList, FileTable, PermissionGate, ProbabilityPanel } from '$lib/components/index.js';
+import {
+  DiskList,
+  FileTable,
+  PermissionGate,
+  ProbabilityPanel,
+  RecoveryModal,
+} from '$lib/components/index.js';
 import type { DeletedFileEntry, DiskInfo } from '$lib/types';
 import type { ProbabilityReport } from '$lib/types';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { ScanLine, X } from 'lucide-svelte';
+import { HardDriveDownload, ScanLine, X } from 'lucide-svelte';
 import { onDestroy } from 'svelte';
 
 // ── App-level state machine ──────────────────────────────────────────────────
@@ -27,6 +33,11 @@ let probLoading = $state(false);
 let probError = $state<string | null>(null);
 /** Monotonic token: ignore stale assessments when rows are clicked quickly. */
 let probRequestId = 0;
+
+// ── Recovery flow state (P4-T03) ──────────────────────────────────────────────
+
+let recoverOpen = $state(false);
+let recoverDest = $state<string | null>(null);
 
 // ── Tauri event listeners ────────────────────────────────────────────────────
 
@@ -105,6 +116,19 @@ async function handleRowClick(file: DeletedFileEntry): Promise<void> {
   } finally {
     if (requestId === probRequestId) probLoading = false;
   }
+}
+
+async function handleRecoverClick(): Promise<void> {
+  if (!selectedFile || !selectedDisk) return;
+  // Native folder picker first; Ok(None) (user cancelled) → do nothing.
+  const dest = await invoke<string | null>('pick_destination_folder');
+  if (!dest) return;
+  recoverDest = dest;
+  recoverOpen = true;
+}
+
+function closeRecovery(): void {
+  recoverOpen = false;
 }
 
 async function startScan(): Promise<void> {
@@ -214,10 +238,26 @@ function formatDuration(ms: number): string {
           error={probError}
           fileName={selectedFile ? (selectedFile.name ?? `recovered_${selectedFile.inode_id}`) : null}
         />
+        {#if selectedFile}
+          <div class="recover-bar">
+            <Button variant="primary" onclick={handleRecoverClick}>
+              <HardDriveDownload size={14} strokeWidth={1.5} />
+              Recover this file…
+            </Button>
+          </div>
+        {/if}
       {/if}
     </section>
   </div>
 </main>
+
+<RecoveryModal
+  open={recoverOpen}
+  file={selectedFile}
+  disk={selectedDisk}
+  destPath={recoverDest}
+  onclose={closeRecovery}
+/>
 
 <style>
   .app-shell {
@@ -373,5 +413,15 @@ function formatDuration(ms: number): string {
   .file-table-wrapper {
     flex: 1;
     overflow: hidden;
+  }
+
+  /* ── Recover action bar ──────────────────────────────────── */
+  .recover-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-layer);
+    flex-shrink: 0;
   }
 </style>

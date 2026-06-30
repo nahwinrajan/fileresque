@@ -1,7 +1,7 @@
 <script lang="ts">
 import '../app.css';
 import { gsap } from 'gsap';
-import { onMount, type Snippet } from 'svelte';
+import { type Snippet, onMount } from 'svelte';
 
 const { children }: { children: Snippet } = $props();
 

@@ -16,6 +16,10 @@ tauri = { version = "2", features = [] }
 # DEPENDENCY JUSTIFICATION: tauri-plugin-shell — allows opening system URLs; included in
 # default Tauri 2 project; shell:allow-open capability is listed in capabilities/default.json
 tauri-plugin-shell = "2"
+# DEPENDENCY JUSTIFICATION: tauri-plugin-dialog — native folder picker for the recovery
+# destination (P4-T01 pick_destination_folder). Invoked only from Rust (our own command),
+# so no frontend dialog capability is exposed; no network use.
+tauri-plugin-dialog = "2"
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }

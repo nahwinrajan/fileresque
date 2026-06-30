@@ -15,3 +15,4 @@ export { default as PermissionGate } from './PermissionGate.svelte';
 export { default as PermissionModal } from './PermissionModal.svelte';
 export { default as ProbabilityPanel } from './ProbabilityPanel.svelte';
 export { default as ProgressBar } from './ProgressBar.svelte';
+export { default as RecoveryModal } from './RecoveryModal.svelte';

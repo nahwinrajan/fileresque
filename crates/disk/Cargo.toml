@@ -17,6 +17,10 @@ byteorder = "1"
 # DEPENDENCY JUSTIFICATION: plist — parses Apple XML plist format output from diskutil;
 # no alternative in std or already-approved crates for this Apple-specific format
 plist = "1"
+# DEPENDENCY JUSTIFICATION: libc — statfs(2) for destination free-space and the
+# backing BSD device of a path (same-disk pre-flight check, P4-T01). No std API
+# exposes either; statfs is the canonical POSIX call.
+libc = "0.2"
 
 # DEPENDENCY JUSTIFICATION: windows-sys provides thin zero-overhead bindings to
 # Win32 APIs required for disk enumeration (CreateFileW, DeviceIoControl,

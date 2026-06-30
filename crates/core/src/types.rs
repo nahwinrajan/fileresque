@@ -82,7 +82,11 @@ pub struct PreflightResult {
 }
 
 /// Errors that can occur during pre-flight destination validation.
+///
+/// Internally tagged (`{ "kind": "SameDisk" }`) to match the discriminated-union
+/// shape the frontend `PreflightError` type expects (see `src/lib/types.ts`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "kind")]
 pub enum PreflightError {
     /// Source and destination reside on the same physical disk — unsafe for recovery.
     SameDisk,

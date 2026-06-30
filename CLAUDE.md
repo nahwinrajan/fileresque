@@ -7,6 +7,7 @@
 - Use `skills/fluid-animation.md` animation design when creating animation: what, when, how, where, why to animate.
 - Use `skills/humanizer` when creating content.
 
+Focus on using allowed command in `.claude/settings.json` unless those new command is not dangerous and can save lot of tokens (more efficient); propose to add such command to settings.json to me, I will add it manually if I deem it worth it.
 ---
 
 ## What This Project Is

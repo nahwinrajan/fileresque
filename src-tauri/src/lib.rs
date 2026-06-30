@@ -14,13 +14,19 @@ mod commands;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(commands::scan::ScanState::new())
+        .manage(commands::recovery::RecoveryState::new())
         .invoke_handler(tauri::generate_handler![
             commands::get_disks,
             commands::check_disk_access,
             commands::scan::start_scan,
             commands::scan::cancel_scan,
             commands::recovery::check_probability,
+            commands::recovery::pick_destination_folder,
+            commands::recovery::preflight_recovery,
+            commands::recovery::recover_files,
+            commands::recovery::cancel_recovery,
         ])
         .run(tauri::generate_context!())
         // JUSTIFIED: unrecoverable — Tauri runtime failure means the process cannot continue

@@ -6,5 +6,13 @@ edition = "2021"
 [dependencies]
 fileresque-core = { path = "../core" }
 serde = { workspace = true }
+serde_json = { workspace = true }
 tokio = { workspace = true }
 thiserror = { workspace = true }
+# DEPENDENCY JUSTIFICATION: sha2 — RustCrypto SHA-256 over recovered file bytes for
+# the integrity digest returned to the UI and written to the audit log (P4-T02/T04),
+# and for the fallback `recovered_<hash>` filename. Pure-Rust, no_std-capable, no network.
+sha2 = "0.10"
+
+[dev-dependencies]
+tempfile = "3"

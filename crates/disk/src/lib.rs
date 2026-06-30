@@ -3,6 +3,11 @@
 // Internal field-layout comments use "field_name(N)" notation — backticks not needed.
 #![allow(clippy::doc_markdown)]
 
+/// Cross-platform filesystem facts about a destination path (recovery
+/// pre-flight). Pure helpers are tested on all platforms; the `dest_info`
+/// platform call is gated internally.
+pub mod fsinfo;
+
 #[cfg(target_os = "macos")]
 pub mod macos;
 

@@ -54,3 +54,40 @@ export type PreflightError =
   | { kind: 'InsufficientSpace'; required: number; available: number }
   | { kind: 'DestinationNotWritable' }
   | { kind: 'SourceNotReadable' };
+
+// ── Recovery (P4-T02/T03) ─────────────────────────────────────────────────────
+// Event payloads emitted by the `recover_files` command. Mirror the JSON shapes
+// built in `src-tauri/src/commands/recovery.rs`.
+
+/** `recovery:progress` — throttled, one stream per recovering file. */
+export interface RecoveryProgressEvent {
+  inode_id: number;
+  file_index: number;
+  total_files: number;
+  bytes_written: number;
+  blocks_done: number;
+  blocks_skipped: number;
+}
+
+export type RecoveryFileStatus = 'success' | 'partial' | 'failed';
+
+/** `recovery:file_complete` — one per finished (or failed) file. */
+export interface RecoveryFileCompleteEvent {
+  status: RecoveryFileStatus;
+  inode_id?: number;
+  final_path?: string;
+  sha256?: string;
+  blocks_read?: number;
+  blocks_skipped?: number;
+  bytes_written?: number;
+  error?: string;
+}
+
+/** `recovery:complete` — batch summary. */
+export interface RecoveryCompleteEvent {
+  recovered: number;
+  partial: number;
+  failed: number;
+  cancelled: boolean;
+  total: number;
+}
