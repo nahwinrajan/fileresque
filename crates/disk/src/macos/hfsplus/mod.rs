@@ -57,13 +57,9 @@ pub fn scan_hfsplus_sync(
 
     // HFS+ Volume Header is always at byte offset 1024.
     // Read 512 bytes starting at offset 1024.
-    device
-        .seek(SeekFrom::Start(1024))
-        .map_err(AppError::Io)?;
+    device.seek(SeekFrom::Start(1024)).map_err(AppError::Io)?;
     let mut header_buf = vec![0u8; 512];
-    device
-        .read_exact(&mut header_buf)
-        .map_err(AppError::Io)?;
+    device.read_exact(&mut header_buf).map_err(AppError::Io)?;
 
     let header = parse_volume_header(&header_buf)?;
 
@@ -126,8 +122,7 @@ fn parse_catalog_node_size(catalog_data: &[u8]) -> Result<u32, AppError> {
         ));
     }
     let abs_offset = 14 + 18; // = 32
-    let node_size =
-        u16::from_be_bytes([catalog_data[abs_offset], catalog_data[abs_offset + 1]]);
+    let node_size = u16::from_be_bytes([catalog_data[abs_offset], catalog_data[abs_offset + 1]]);
 
     if node_size < 512 {
         // Fallback: HFS+ default node size is 4096; 512 is the minimum valid value.
@@ -228,9 +223,9 @@ mod tests {
         let mut buf = vec![0u8; 512];
         // BTNodeDescriptor (14 bytes) all zeros = valid header node (kind=1 at offset 8)
         buf[8] = 1i8 as u8; // kind = BT_HEADER_NODE
-        // BTHeaderRec starts at offset 14:
-        // treeDepth(2) + rootNode(4) + leafRecords(4) + firstLeafNode(4) + lastLeafNode(4) = 18
-        // nodeSize at offset 14+18 = 32
+                            // BTHeaderRec starts at offset 14:
+                            // treeDepth(2) + rootNode(4) + leafRecords(4) + firstLeafNode(4) + lastLeafNode(4) = 18
+                            // nodeSize at offset 14+18 = 32
         buf[32] = 0x10; // 0x1000 = 4096
         buf[33] = 0x00;
 

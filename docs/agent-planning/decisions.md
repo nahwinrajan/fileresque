@@ -204,3 +204,48 @@
 **Rationale:** "Trust the reviewer to remember" is exactly what failed. A checkbox can be rationalised; a build artifact cannot. The fix is to make "the app actually boots and renders" an executable check that emits proof (a screenshot of the mounted root UI + an assertion of zero console errors), and to require that proof in the sign-off. Green unit tests are downgraded from "sufficient for sign-off" to "necessary but not sufficient."
 **Rule:** No QA sign-off without (1) the app launching and rendering its root UI, verified by an executable smoke check, not visual inspection alone, and (2) a captured artifact (screenshot + console-error log showing zero errors) referenced in the `## QA Sign-off` block. Unit/coverage gates remain mandatory but never substitute for the runtime check.
 **Consequences:** `make smoke` added (boots the dev server, loads it headless, asserts the root element is present and the console is error-free). `qa.md` and the CLAUDE.md Task Completion Checklist updated to require the smoke artifact. Applies retroactively: P2 tasks must pass `make smoke` before their QA gate is closed.
+
+---
+
+## [DECISION-015] — `check_probability` IPC Signature Takes the Full Entry + Disk, Not `(inode_id, disk_id)`
+
+**Date:** 2026-06-30
+**Decided by:** TPM
+**Context:** The feature breakdown specifies `check_probability(inode_id: u64, disk_id: String) -> Result<ProbabilityReport, AppError>` (P3-T02). The probability engine (P3-T01) needs the file's **extent list** to sample blocks — that data lives only in the `DeletedFileEntry` produced during the scan. An `inode_id` alone cannot be turned back into extents without re-running the full filesystem scan and re-locating the record, which is slow (a second whole-disk pass) and lossy (MVP scanner is a best-effort heuristic walk; a re-scan is not guaranteed to surface the same inode).
+**Options considered:**
+
+- A: Keep `(inode_id, disk_id)`; cache every scanned `DeletedFileEntry` server-side keyed by inode so the command can look extents up
+- B: Pass the full `DeletedFileEntry` and `DiskInfo` from the frontend, which already holds both (the entry from `scan:file_found`, the disk from `get_disks`)
+**Decision:** B — pass the full objects
+**Rationale:** The frontend is already the source of truth for the displayed row and the selected disk; both objects are in hand at click time. Round-tripping them to Rust is a few KB and avoids a server-side scan-result cache (extra state, lifetime/eviction questions, memory growth on large scans) purely to satisfy a narrower signature. The narrower signature buys nothing here because the engine's input is the extent list, not the id.
+**Consequences:** Tauri command is `check_probability(entry: DeletedFileEntry, disk: DiskInfo) -> Result<ProbabilityReport, AppError>`. The frontend `DeletedFileEntry` / `DiskInfo` TS interfaces already mirror the Rust structs, so no new serialisation surface. If a future "re-assess from history" feature needs id-only lookup, that is new scope and can add the cache then.
+
+---
+
+## [DECISION-016] — Probability Result Rendered in a Docked Detail Panel, Not Inline-Expanded Within the Virtualised Row List
+
+**Date:** 2026-06-30
+**Decided by:** TPM (with 🟣 Designer)
+**Context:** P3-T02 spec says "Result: inline expandable panel below row." The `<FileTable>` from P2-T05 is a **fixed-row-height virtual list** (`ROW_HEIGHT = 40`, windowed render with a transform offset). Variable-height inline expansion inside a row breaks the windowing math: scroll position, `visibleStart/visibleEnd`, and the spacer height all assume uniform rows. Supporting one expanded row would require per-row height bookkeeping and a measured-offset virtual list — a substantial rewrite of a component whose 10k-row performance is already QA-gated.
+**Options considered:**
+
+- A: Inline expand within the row list (rewrite virtualisation to variable-height)
+- B: Render the selected file's report in a detail panel docked below the results list; clicking a row selects it and populates the panel
+**Decision:** B — docked detail panel
+**Rationale:** The information goal (show tier, breakdown, warnings for the clicked file) is fully met by a detail panel, without endangering the virtual-list performance contract. A docked panel is also better for keyboard users (one stable focus target) and matches the data-dense, master/detail layout already used by the disk-list → results split. The "inline below row" wording was a presentation suggestion, not a hard requirement; the requirement is "show the report for the clicked file."
+**Consequences:** New `<ProbabilityPanel>` component renders the `ProbabilityReport` (loading / loaded / error states). `+page.svelte` tracks `selectedFile` and the panel docks at the bottom of the results pane. `<FileTable>` gains an optional `selectedInode` prop for row highlight; its virtualisation is untouched. The "inline expand" phrasing in the feature breakdown is superseded by this decision.
+
+---
+
+## [DECISION-017] — APFS Free-Bitmap Polarity is Self-Detected, Not Hard-Coded
+
+**Date:** 2026-06-30
+**Decided by:** Developer (🔵), ratified by TPM
+**Context:** P3-T01's allocation-bitmap cross-reference (deferred by the Phase 2 APFS scanner) was implemented in `crates/disk/src/macos/apfs/spaceman.rs`: resolve the ephemeral `nx_spaceman_oid` through the checkpoint descriptor area → parse `spaceman_phys` → walk chunk-info blocks (cib, and the cab indirection layer) → read each chunk's allocation bitmap. The Apple File System Reference documents the bitmap as one bit per block but the **polarity** (set bit = free, or set bit = allocated) is easy to get backwards, and there are no signed/notarised real-disk fixtures available in this environment to confirm it empirically. In a recovery tool an inverted bitmap is a *dangerous* error: it would label reusable blocks as safe (false High) or recoverable blocks as lost (false Low).
+**Options considered:**
+
+- A: Hard-code the polarity per a reading of the spec and ship it
+- B: Self-detect polarity at runtime by counting bits and matching against the authoritative per-chunk `ci_free_count`; if neither interpretation matches, return "unknown"
+**Decision:** B — self-detecting, self-validating polarity
+**Rationale:** Each `chunk_info` carries `ci_free_count`, the ground-truth number of free blocks in that chunk. `detect_polarity` counts set vs clear bits over the chunk and picks the interpretation whose free-bit count equals `ci_free_count`. This makes the parser correct regardless of which polarity Apple uses, AND doubles as a structural-integrity check: if the byte offsets are wrong or the block is corrupt, neither count will match and the query returns `None` ("unknown") rather than a fabricated answer. Failure is contained — any parse error at any stage (`spaceman` resolution, cib/cab walk, bitmap read, polarity match) degrades gracefully to "allocation unknown", so the probability engine caps at Medium instead of trusting bad data.
+**Consequences:** `DeviceProbe::is_free` now returns real `Some(true|false)` on APFS volumes whose space manager parses, unlocking the **High** tier in production. The `None` ("unknown") path remains as the safe fallback. `nx_spaceman_oid` is now captured in `NxSuperblock`. Pure helpers (`detect_polarity`, `bit_is_set`, `find_chunk`, `uniform_chunk_free`, the cib/checkpoint parsers) are unit-tested with synthetic fixtures; full on-disk validation against a real APFS volume is still recommended before GA and is tracked as a Phase 5 hardening item.

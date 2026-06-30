@@ -1,6 +1,7 @@
 // Tauri commands always have their return value consumed by the IPC mechanism.
 #![allow(clippy::must_use_candidate)]
 
+pub mod recovery;
 pub mod scan;
 
 use fileresque_core::{error::AppError, types::DiskInfo};

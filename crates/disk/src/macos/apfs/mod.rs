@@ -1,5 +1,6 @@
 pub mod reader;
 pub mod scanner;
+pub mod spaceman;
 pub mod structs;
 
 use fileresque_core::{error::AppError, types::DeletedFileEntry};
@@ -38,10 +39,7 @@ pub async fn scan_apfs(
 ///
 /// - [`AppError::PermissionDenied`] if the raw device cannot be opened
 /// - [`AppError::Internal`] on malformed on-disk structures
-pub fn scan_apfs_sync(
-    disk_id: &str,
-    tx: &mpsc::Sender<DeletedFileEntry>,
-) -> Result<(), AppError> {
+pub fn scan_apfs_sync(disk_id: &str, tx: &mpsc::Sender<DeletedFileEntry>) -> Result<(), AppError> {
     let raw_device = disk_id_to_raw_device(disk_id)?;
     let mut reader = BlockReader::open(&raw_device)?;
 
@@ -106,7 +104,6 @@ pub(crate) fn disk_id_to_raw_device(disk_id: &str) -> Result<String, AppError> {
 
     Ok(format!("/dev/rdisk{suffix}"))
 }
-
 
 #[cfg(test)]
 mod tests {

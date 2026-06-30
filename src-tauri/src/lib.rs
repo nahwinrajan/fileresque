@@ -20,6 +20,7 @@ pub fn run() {
             commands::check_disk_access,
             commands::scan::start_scan,
             commands::scan::cancel_scan,
+            commands::recovery::check_probability,
         ])
         .run(tauri::generate_context!())
         // JUSTIFIED: unrecoverable — Tauri runtime failure means the process cannot continue

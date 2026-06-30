@@ -1,11 +1,12 @@
 <script lang="ts">
+import Button from '$lib/components/Button.svelte';
+import { DiskList, FileTable, PermissionGate, ProbabilityPanel } from '$lib/components/index.js';
 import type { DeletedFileEntry, DiskInfo } from '$lib/types';
+import type { ProbabilityReport } from '$lib/types';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { onDestroy } from 'svelte';
-import { DiskList, FileTable, PermissionGate } from '$lib/components/index.js';
-import Button from '$lib/components/Button.svelte';
 import { ScanLine, X } from 'lucide-svelte';
+import { onDestroy } from 'svelte';
 
 // ── App-level state machine ──────────────────────────────────────────────────
 
@@ -17,6 +18,15 @@ let files = $state<DeletedFileEntry[]>([]);
 let filesFound = $state(0);
 let scanError = $state<string | null>(null);
 let scanDurationMs = $state<number | null>(null);
+
+// ── Probability assessment state (P3-T02) ────────────────────────────────────
+
+let selectedFile = $state<DeletedFileEntry | null>(null);
+let probReport = $state<ProbabilityReport | null>(null);
+let probLoading = $state(false);
+let probError = $state<string | null>(null);
+/** Monotonic token: ignore stale assessments when rows are clicked quickly. */
+let probRequestId = 0;
 
 // ── Tauri event listeners ────────────────────────────────────────────────────
 
@@ -55,6 +65,14 @@ onDestroy(detachScanListeners);
 
 // ── Actions ──────────────────────────────────────────────────────────────────
 
+function resetProbability(): void {
+  selectedFile = null;
+  probReport = null;
+  probError = null;
+  probLoading = false;
+  probRequestId += 1;
+}
+
 function handleDiskSelect(disk: DiskInfo): void {
   selectedDisk = disk;
   files = [];
@@ -62,6 +80,31 @@ function handleDiskSelect(disk: DiskInfo): void {
   scanError = null;
   scanDurationMs = null;
   appState = 'idle';
+  resetProbability();
+}
+
+async function handleRowClick(file: DeletedFileEntry): Promise<void> {
+  if (!selectedDisk) return;
+  selectedFile = file;
+  probReport = null;
+  probError = null;
+  probLoading = true;
+  const requestId = ++probRequestId;
+
+  try {
+    const report = await invoke<ProbabilityReport>('check_probability', {
+      entry: file,
+      disk: selectedDisk,
+    });
+    // Drop the result if a newer request superseded this one.
+    if (requestId !== probRequestId) return;
+    probReport = report;
+  } catch (err) {
+    if (requestId !== probRequestId) return;
+    probError = err instanceof Error ? err.message : String(err);
+  } finally {
+    if (requestId === probRequestId) probLoading = false;
+  }
 }
 
 async function startScan(): Promise<void> {
@@ -71,6 +114,7 @@ async function startScan(): Promise<void> {
   scanError = null;
   scanDurationMs = null;
   appState = 'scanning';
+  resetProbability();
 
   detachScanListeners();
   await attachScanListeners();
@@ -160,8 +204,17 @@ function formatDuration(ms: number): string {
       {/if}
 
       <div class="file-table-wrapper">
-        <FileTable {files} />
+        <FileTable {files} selectedInode={selectedFile?.inode_id ?? null} onrowclick={handleRowClick} />
       </div>
+
+      {#if appState === 'complete' || selectedFile}
+        <ProbabilityPanel
+          report={probReport}
+          loading={probLoading}
+          error={probError}
+          fileName={selectedFile ? (selectedFile.name ?? `recovered_${selectedFile.inode_id}`) : null}
+        />
+      {/if}
     </section>
   </div>
 </main>

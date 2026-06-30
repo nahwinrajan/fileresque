@@ -53,9 +53,9 @@ impl BlockReader {
             .map_err(AppError::Io)?;
 
         let mut buf = vec![0u8; self.block_size as usize];
-        self.file.read_exact(&mut buf).map_err(|e| {
-            AppError::Internal(format!("read_exact at block {block_addr}: {e}"))
-        })?;
+        self.file
+            .read_exact(&mut buf)
+            .map_err(|e| AppError::Internal(format!("read_exact at block {block_addr}: {e}")))?;
         Ok(buf)
     }
 }

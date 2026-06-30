@@ -31,6 +31,9 @@ pub struct NxSuperblock {
     pub block_count: u64,
     /// Object ID of the container object map.
     pub omap_oid: u64,
+    /// Ephemeral object ID of the container space manager (`nx_spaceman_oid`).
+    /// Resolved to a physical address via the checkpoint descriptor area.
+    pub spaceman_oid: u64,
     /// Object IDs of APFS volumes present in this container (non-zero entries).
     pub fs_oids: Vec<u64>,
     /// Physical block address of the checkpoint descriptor area.

@@ -8,8 +8,8 @@ use fileresque_core::error::AppError;
 use std::io::Cursor;
 
 use super::structs::{
-    ATTR_END_MARKER, ATTR_FILE_NAME, FILE_NAME_DOS, FILE_NAME_POSIX, FILE_NAME_WIN32,
-    FILE_NAME_WIN32_AND_DOS, MFT_RECORD_IN_USE, MFT_RECORD_IS_DIRECTORY, MFT_RECORD_MAGIC,
+    ATTR_END_MARKER, ATTR_FILE_NAME, FILE_NAME_POSIX, FILE_NAME_WIN32, FILE_NAME_WIN32_AND_DOS,
+    MFT_RECORD_IN_USE, MFT_RECORD_IS_DIRECTORY, MFT_RECORD_MAGIC,
 };
 
 pub use super::structs::{AttrHeader, FileNameAttr, MftRecord, NtfsVbr};
@@ -312,7 +312,8 @@ pub fn parse_file_name_attr(data: &[u8]) -> Result<FileNameAttr, AppError> {
         .map_err(|e| AppError::Internal(e.to_string()))?;
 
     // Name starts at byte 66 (cursor is now at position 66)
-    let name_start = cur.position() as usize;
+    let name_start = usize::try_from(cur.position())
+        .map_err(|_| AppError::Internal("$FILE_NAME cursor position overflow".to_string()))?;
     let name_byte_len = name_len
         .checked_mul(2)
         .ok_or_else(|| AppError::Internal("$FILE_NAME name length overflow".to_string()))?;
@@ -359,8 +360,9 @@ pub fn filetime_to_system_time(filetime: u64) -> Option<std::time::SystemTime> {
     const EPOCH_DIFF: u64 = 116_444_736_000_000_000;
     let unix_100ns = filetime.checked_sub(EPOCH_DIFF)?;
     let secs = unix_100ns / 10_000_000;
-    let nanos = (unix_100ns % 10_000_000) * 100;
-    std::time::UNIX_EPOCH.checked_add(std::time::Duration::new(secs, nanos as u32))
+    // (unix_100ns % 10_000_000) < 10_000_000, so * 100 < 1_000_000_000 — fits u32.
+    let nanos = u32::try_from((unix_100ns % 10_000_000) * 100).ok()?;
+    std::time::UNIX_EPOCH.checked_add(std::time::Duration::new(secs, nanos))
 }
 
 // ─── Deleted-entry extraction helpers ────────────────────────────────────────
@@ -374,7 +376,7 @@ fn namespace_priority(ns: u8) -> u8 {
         FILE_NAME_WIN32_AND_DOS => 3,
         FILE_NAME_WIN32 => 2,
         FILE_NAME_POSIX => 1,
-        FILE_NAME_DOS => 0,
+        // FILE_NAME_DOS and any unknown namespace are lowest priority (0).
         _ => 0,
     }
 }
@@ -389,21 +391,16 @@ pub(crate) fn find_best_file_name(buf: &[u8], record: &MftRecord) -> Option<File
     let mut offset = usize::from(record.attrs_offset);
     let mut best: Option<FileNameAttr> = None;
 
-    loop {
-        let header = match parse_attr_header(buf, offset) {
-            Ok(Some(h)) => h,
-            _ => break,
-        };
-
+    while let Ok(Some(header)) = parse_attr_header(buf, offset) {
         if header.attr_type == ATTR_FILE_NAME && !header.non_resident {
             let value_start = offset.saturating_add(usize::from(header.offset));
             let value_end = offset.saturating_add(header.length as usize);
 
             if value_start < value_end && value_end <= buf.len() {
                 if let Ok(attr) = parse_file_name_attr(&buf[value_start..value_end]) {
-                    let is_better = best
-                        .as_ref()
-                        .map_or(true, |b| namespace_priority(attr.namespace) > namespace_priority(b.namespace));
+                    let is_better = best.as_ref().is_none_or(|b| {
+                        namespace_priority(attr.namespace) > namespace_priority(b.namespace)
+                    });
                     if is_better {
                         best = Some(attr);
                     }
@@ -547,7 +544,8 @@ mod tests {
         buf[13] = sectors_per_cluster;
         buf[56..64].copy_from_slice(&mft_cluster.to_le_bytes());
         buf[64..72].copy_from_slice(&mft_mirror_cluster.to_le_bytes());
-        buf[72] = clusters_per_mft_record as u8;
+        // NTFS stores this signed field as a raw byte; reinterpret bits.
+        buf[72] = clusters_per_mft_record.cast_unsigned();
         buf[80..88].copy_from_slice(&volume_serial.to_le_bytes());
         buf
     }
@@ -557,7 +555,7 @@ mod tests {
         let mut buf = vec![0u8; 1024];
         buf[0..4].copy_from_slice(&MFT_RECORD_MAGIC.to_le_bytes());
         buf[16..18].copy_from_slice(&1u16.to_le_bytes()); // sequence_number
-        // link_count at 18: leave as 0
+                                                          // link_count at 18: leave as 0
         buf[20..22].copy_from_slice(&attrs_offset.to_le_bytes());
         buf[22..24].copy_from_slice(&flags.to_le_bytes());
         buf[24..28].copy_from_slice(&400u32.to_le_bytes()); // bytes_in_use
@@ -913,7 +911,8 @@ mod tests {
         buf[48..56].copy_from_slice(&file_size.to_le_bytes());
         // flags at 56: 0
         // reparse_tag at 60: 0
-        buf[64] = name_units.len() as u8;
+        // JUSTIFIED: test-only; fixture names are far shorter than 255 units.
+        buf[64] = u8::try_from(name_units.len()).expect("fixture name fits in u8");
         buf[65] = namespace;
         for (i, &u) in name_units.iter().enumerate() {
             let pos = 66 + i * 2;
@@ -1035,15 +1034,16 @@ mod tests {
         // Insert $FILE_NAME attribute at offset 56
         let fn_value = make_file_name_buf(name, namespace, 512);
         let value_offset_in_attr: u16 = 24; // standard resident attribute header size
-        let attr_len = value_offset_in_attr as u32 + fn_value.len() as u32;
+                                            // JUSTIFIED: test-only; fixture attribute length is well within u32.
+        let attr_len = u32::from(value_offset_in_attr)
+            + u32::try_from(fn_value.len()).expect("fixture attr fits in u32");
 
         let attr_start = usize::from(attrs_offset);
         buf[attr_start..attr_start + 4].copy_from_slice(&ATTR_FILE_NAME.to_le_bytes());
         buf[attr_start + 4..attr_start + 8].copy_from_slice(&attr_len.to_le_bytes());
         buf[attr_start + 8] = 0; // resident
         buf[attr_start + 9] = 0; // no attribute name
-        buf[attr_start + 10..attr_start + 12]
-            .copy_from_slice(&value_offset_in_attr.to_le_bytes());
+        buf[attr_start + 10..attr_start + 12].copy_from_slice(&value_offset_in_attr.to_le_bytes());
 
         // Write value
         let val_start = attr_start + usize::from(value_offset_in_attr);
@@ -1088,7 +1088,8 @@ mod tests {
 
         for case in cases {
             let buf = make_record_with_name(case.file_name, case.namespace);
-            let record = parse_mft_record(&buf, 0).expect("make_record_with_name must produce valid record");
+            let record =
+                parse_mft_record(&buf, 0).expect("make_record_with_name must produce valid record");
             let result = find_best_file_name(&buf, &record);
             assert_eq!(
                 result.is_some(),

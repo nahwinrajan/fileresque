@@ -2,10 +2,8 @@ use byteorder::{ReadBytesExt, BE};
 use fileresque_core::error::AppError;
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
-use super::structs::{
-    is_block_allocated, BT_LEAF_NODE, HFS_FILE_RECORD, HFS_FILE_THREAD_RECORD,
-};
 pub(crate) use super::structs::CatalogDeletedFile;
+use super::structs::{is_block_allocated, BT_LEAF_NODE, HFS_FILE_RECORD, HFS_FILE_THREAD_RECORD};
 
 /// Offset of modifyDate within an HFS+ catalog file record (after the 2-byte record type).
 /// HFSPlusCatalogFile layout (offsets from record start):
@@ -34,9 +32,7 @@ pub(crate) fn read_extents_from_device(
     block_size: u32,
 ) -> Result<Vec<u8>, AppError> {
     if block_size == 0 {
-        return Err(AppError::Internal(
-            "HFS+ block_size is zero".to_string(),
-        ));
+        return Err(AppError::Internal("HFS+ block_size is zero".to_string()));
     }
     let bs = u64::from(block_size);
     let mut data = Vec::new();
@@ -46,9 +42,7 @@ pub(crate) fn read_extents_from_device(
         }
         let offset = u64::from(start_block) * bs;
         let length = u64::from(block_count) * bs;
-        device
-            .seek(SeekFrom::Start(offset))
-            .map_err(AppError::Io)?;
+        device.seek(SeekFrom::Start(offset)).map_err(AppError::Io)?;
         let prev_len = data.len();
         let length_usize = usize::try_from(length)
             .map_err(|_| AppError::Internal("extent too large for address space".to_string()))?;
@@ -75,8 +69,7 @@ fn parse_file_record(record_buf: &[u8]) -> Option<CatalogDeletedFile> {
     }
 
     // offset 2: flags (skip)
-    cur.seek(SeekFrom::Start(FILE_REC_FLAGS_OFFSET + 2))
-        .ok()?;
+    cur.seek(SeekFrom::Start(FILE_REC_FLAGS_OFFSET + 2)).ok()?;
 
     // offset 8: fileID (CNID)
     cur.seek(SeekFrom::Start(FILE_REC_CNID_OFFSET)).ok()?;
@@ -198,7 +191,9 @@ fn process_catalog_node(
 
         // Next record offset to determine record length
         let next_table_pos = node_size - 2 * (usize::from(i) + 2);
-        let rec_end = if next_table_pos + 2 <= node_size && usize::from(i) + 1 < usize::from(num_records) {
+        let rec_end = if next_table_pos + 2 <= node_size
+            && usize::from(i) + 1 < usize::from(num_records)
+        {
             u16::from_be_bytes([node_buf[next_table_pos], node_buf[next_table_pos + 1]]) as usize
         } else {
             // Last record ends at start of offset table
@@ -425,8 +420,8 @@ mod tests {
 
         for (name, input, expected) in cases {
             let result = u64::from(input.hfs_time).checked_sub(HFS_TO_UNIX_OFFSET);
-            let system_time = result
-                .and_then(|unix_secs| UNIX_EPOCH.checked_add(Duration::from_secs(unix_secs)));
+            let system_time =
+                result.and_then(|unix_secs| UNIX_EPOCH.checked_add(Duration::from_secs(unix_secs)));
             assert_eq!(
                 system_time.is_some(),
                 expected.is_some,

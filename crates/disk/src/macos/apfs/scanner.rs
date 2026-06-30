@@ -1,4 +1,4 @@
-use byteorder::{LE, ReadBytesExt};
+use byteorder::{ReadBytesExt, LE};
 use fileresque_core::{
     error::AppError,
     types::{DeletedFileEntry, FileSystem},
@@ -9,8 +9,8 @@ use tokio::sync::mpsc;
 use super::{
     reader::BlockReader,
     structs::{
-        APFS_MAGIC, APFS_TYPE_INODE, MAX_BLOCK_SIZE, MIN_BLOCK_SIZE, NX_MAGIC,
-        NX_SUPERBLOCK_MAGIC_OFFSET, ApfsSuperblock, InodeRecord, NxSuperblock,
+        ApfsSuperblock, InodeRecord, NxSuperblock, APFS_MAGIC, APFS_TYPE_INODE, MAX_BLOCK_SIZE,
+        MIN_BLOCK_SIZE, NX_MAGIC, NX_SUPERBLOCK_MAGIC_OFFSET,
     },
 };
 
@@ -48,7 +48,7 @@ pub fn parse_nx_superblock(buf: &[u8]) -> Result<NxSuperblock, AppError> {
 
     let (xp_desc_base, xp_desc_len) = read_checkpoint_info(&mut cur)?;
 
-    let omap_oid = read_nx_omap_oid(&mut cur)?;
+    let (spaceman_oid, omap_oid) = read_nx_spaceman_omap_oids(&mut cur)?;
 
     let (max_fs, fs_oids) = read_nx_fs_oids(&mut cur)?;
     let _ = max_fs; // used internally only
@@ -57,6 +57,7 @@ pub fn parse_nx_superblock(buf: &[u8]) -> Result<NxSuperblock, AppError> {
         block_size,
         block_count,
         omap_oid,
+        spaceman_oid,
         fs_oids,
         xp_desc_base,
         xp_desc_len,
@@ -124,15 +125,14 @@ fn read_checkpoint_info(cur: &mut Cursor<&[u8]>) -> Result<(u64, u32), AppError>
     Ok((xp_desc_base, xp_desc_len.min(xp_desc_blocks)))
 }
 
-/// Read spaceman, omap, and reaper OIDs; return only omap_oid.
+/// Read spaceman + omap OIDs (and skip reaper); return `(spaceman_oid, omap_oid)`.
 ///
 /// After `xp_desc_len` comes:
 ///   nx_xp_data_len(4) + nx_spaceman_oid(8) + nx_omap_oid(8)
-fn read_nx_omap_oid(cur: &mut Cursor<&[u8]>) -> Result<u64, AppError> {
+fn read_nx_spaceman_omap_oids(cur: &mut Cursor<&[u8]>) -> Result<(u64, u64), AppError> {
     // nx_xp_data_len
     advance(cur, 4)?;
-    // nx_spaceman_oid
-    let _spaceman_oid = cur
+    let spaceman_oid = cur
         .read_u64::<LE>()
         .map_err(|e| AppError::Internal(e.to_string()))?;
     let omap_oid = cur
@@ -140,7 +140,7 @@ fn read_nx_omap_oid(cur: &mut Cursor<&[u8]>) -> Result<u64, AppError> {
         .map_err(|e| AppError::Internal(e.to_string()))?;
     // nx_reaper_oid — skip
     advance(cur, 8)?;
-    Ok(omap_oid)
+    Ok((spaceman_oid, omap_oid))
 }
 
 /// Read `nx_test_type`, `nx_max_file_systems`, and `nx_fs_oid[]`.
@@ -386,9 +386,8 @@ fn omap_leaf_scan(buf: &[u8], nkeys: u32, target_oid: u64) -> Result<u64, AppErr
         }
     }
 
-    best_paddr.ok_or_else(|| {
-        AppError::Internal(format!("OMap: OID {target_oid} not found in leaf"))
-    })
+    best_paddr
+        .ok_or_else(|| AppError::Internal(format!("OMap: OID {target_oid} not found in leaf")))
 }
 
 /// Traverse an OMap internal node to find the child containing `target_oid`.
@@ -542,11 +541,7 @@ fn walk_fs_internal_node(
 /// The FS B-tree uses variable-length keys and values. The minimum key is
 /// 8 bytes (obj_id_and_type: u64). We scan from offset 72 forward, looking
 /// for APFS_TYPE_INODE keys. This is an MVP heuristic scanner.
-fn scan_fs_leaf_node(
-    buf: &[u8],
-    nkeys: u32,
-    tx: &mpsc::Sender<DeletedFileEntry>,
-) {
+fn scan_fs_leaf_node(buf: &[u8], nkeys: u32, tx: &mpsc::Sender<DeletedFileEntry>) {
     if buf.len() < 80 {
         return;
     }
@@ -559,7 +554,9 @@ fn scan_fs_leaf_node(
     let mut offset = 72usize;
     while offset + 8 <= buf.len() {
         let mut kc = Cursor::new(&buf[offset..offset + 8]);
-        let Ok(obj_id_and_type) = kc.read_u64::<LE>() else { break };
+        let Ok(obj_id_and_type) = kc.read_u64::<LE>() else {
+            break;
+        };
 
         if (obj_id_and_type & type_mask) == inode_type_mask {
             let inode_id = obj_id_and_type & !(type_mask);
@@ -611,7 +608,11 @@ fn try_parse_inode_value(buf: &[u8], offset: usize, inode_id: u64) -> Option<Ino
     let nlink_raw = cur.read_u32::<LE>().ok()?;
 
     // Sanity check: nlink > 1000 is almost certainly a parse artefact
-    let nlink = if nlink_raw > 1000 { return None; } else { nlink_raw };
+    let nlink = if nlink_raw > 1000 {
+        return None;
+    } else {
+        nlink_raw
+    };
 
     // mod_time is nanoseconds since UNIX epoch in APFS
     let mod_time_nanos = if mod_time_raw == 0 {
@@ -634,9 +635,9 @@ fn try_parse_inode_value(buf: &[u8], offset: usize, inode_id: u64) -> Option<Ino
 fn inode_to_deleted_entry(rec: InodeRecord) -> DeletedFileEntry {
     use std::time::{Duration, UNIX_EPOCH};
 
-    let deleted_at = rec.mod_time_nanos.map(|ns| {
-        UNIX_EPOCH + Duration::from_nanos(ns)
-    });
+    let deleted_at = rec
+        .mod_time_nanos
+        .map(|ns| UNIX_EPOCH + Duration::from_nanos(ns));
 
     DeletedFileEntry {
         inode_id: rec.inode_id,

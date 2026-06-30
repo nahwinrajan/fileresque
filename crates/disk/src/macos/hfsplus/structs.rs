@@ -240,7 +240,9 @@ mod tests {
             ),
             (
                 "parse_volume_header_too_small",
-                Input { buf: vec![0u8; 100] },
+                Input {
+                    buf: vec![0u8; 100],
+                },
                 Expected {
                     is_ok: false,
                     block_size: None,
@@ -256,7 +258,10 @@ mod tests {
                 "FAILED case: {name} — ok mismatch"
             );
             if let (Ok(hdr), Some(bs)) = (result, expected.block_size) {
-                assert_eq!(hdr.block_size, bs, "FAILED case: {name} — block_size mismatch");
+                assert_eq!(
+                    hdr.block_size, bs,
+                    "FAILED case: {name} — block_size mismatch"
+                );
             }
         }
     }

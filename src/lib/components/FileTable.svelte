@@ -6,9 +6,11 @@ import { FileText, HelpCircle, Image, Music, Video } from 'lucide-svelte';
 const {
   files = [],
   onrowclick,
+  selectedInode = null,
 }: {
   files?: DeletedFileEntry[];
   onrowclick?: (file: DeletedFileEntry) => void;
+  selectedInode?: number | null;
 } = $props();
 
 // ── Virtual list state ───────────────────────────────────────────────────────
@@ -61,8 +63,7 @@ function fileKind(name: string | null): FileKind {
   if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'bmp', 'tiff'].includes(ext)) return 'image';
   if (['mp4', 'mov', 'mkv', 'avi', 'webm', 'm4v'].includes(ext)) return 'video';
   if (['mp3', 'aac', 'flac', 'wav', 'ogg', 'm4a'].includes(ext)) return 'audio';
-  if (['pdf', 'doc', 'docx', 'txt', 'md', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext))
-    return 'doc';
+  if (['pdf', 'doc', 'docx', 'txt', 'md', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext)) return 'doc';
   return 'unknown';
 }
 
@@ -106,10 +107,12 @@ function displayName(file: DeletedFileEntry): string {
             {@const rowIndex = visibleStart + i + 1}
             <button
               class="file-table__row"
+              class:file-table__row--selected={file.inode_id === selectedInode}
               style="height: {ROW_HEIGHT}px;"
               type="button"
               role="row"
               aria-rowindex={rowIndex}
+              aria-selected={file.inode_id === selectedInode}
               onclick={() => onrowclick?.(file)}
             >
               <span class="col col--icon" aria-hidden="true">
@@ -230,6 +233,11 @@ function displayName(file: DeletedFileEntry): string {
 
   .file-table__row:hover {
     background: var(--color-bg-layer);
+  }
+
+  .file-table__row--selected {
+    background: var(--color-bg-surface-2);
+    color: var(--color-text-primary);
   }
 
   .file-table__row:focus-visible {
