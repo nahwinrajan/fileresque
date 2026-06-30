@@ -2,6 +2,8 @@
 #![allow(clippy::module_name_repetitions)]
 
 mod commands;
+mod disk_watch;
+mod panic_log;
 
 /// Run the Tauri application event loop.
 ///
@@ -12,6 +14,9 @@ mod commands;
 /// The `expect` call is covered by the `// JUSTIFIED:` comment in the source.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Record any panic to a log file before the process unwinds (P5-T03).
+    panic_log::install_hook();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())

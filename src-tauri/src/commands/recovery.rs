@@ -236,6 +236,10 @@ async fn run_recovery(
     let total = entries.len();
     let mut tally = BatchTally::default();
 
+    // Watch for the source disk being pulled mid-recovery (P5-T03).
+    let watch_stop = Arc::new(AtomicBool::new(false));
+    crate::disk_watch::spawn(app.clone(), source.id.clone(), Arc::clone(&watch_stop));
+
     for (idx, entry) in entries.into_iter().enumerate() {
         if cancel.load(Ordering::SeqCst) {
             tally.cancelled = true;
@@ -255,6 +259,9 @@ async fn run_recovery(
             break; // cancelled mid-file
         }
     }
+
+    // Batch is finished; retire the disconnection watcher.
+    watch_stop.store(true, Ordering::SeqCst);
 
     let _ = app.emit(
         "recovery:complete",
@@ -346,15 +353,15 @@ fn finalize(
             tally.failed += 1;
             let _ = app.emit(
                 "recovery:file_complete",
-                serde_json::json!({ "status": "failed", "error": e.to_string() }),
+                serde_json::json!({ "status": "failed", "error": e.user_message() }),
             );
             true
         }
-        Err(join_err) => {
+        Err(_join_err) => {
             tally.failed += 1;
             let _ = app.emit(
                 "recovery:file_complete",
-                serde_json::json!({ "status": "failed", "error": format!("recovery task panicked: {join_err}") }),
+                serde_json::json!({ "status": "failed", "error": "This file could not be recovered due to an unexpected error." }),
             );
             false
         }

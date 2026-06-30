@@ -5,7 +5,8 @@ use fileresque_core::{
     error::AppError,
     types::{DeletedFileEntry, FileSystem},
 };
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, State};
 use tokio::sync::{mpsc, oneshot};
 
@@ -157,6 +158,10 @@ async fn run_scan_loop(
     let start = std::time::Instant::now();
     let mut total_found = 0u64;
 
+    // Watch for the source disk being pulled mid-scan (P5-T03).
+    let watch_stop = Arc::new(AtomicBool::new(false));
+    crate::disk_watch::spawn(app.clone(), disk_id.clone(), Arc::clone(&watch_stop));
+
     let scan_handle =
         tokio::task::spawn_blocking(move || dispatch_scan_sync(filesystem, &disk_id, entry_tx));
 
@@ -191,6 +196,9 @@ async fn run_scan_loop(
     // Dropping entry_rx signals the scan thread to stop via blocking_send Err.
     drop(entry_rx);
 
+    // Scan is finished; retire the disconnection watcher.
+    watch_stop.store(true, Ordering::SeqCst);
+
     let duration_ms = u64::try_from(start.elapsed().as_millis()).unwrap_or(u64::MAX);
 
     match scan_handle.await {
@@ -207,16 +215,16 @@ async fn run_scan_loop(
             let _ = app.emit(
                 "scan:error",
                 serde_json::json!({
-                    "message": e.to_string(),
+                    "message": e.user_message(),
                     "recoverable": false,
                 }),
             );
         }
-        Err(join_err) => {
+        Err(_join_err) => {
             let _ = app.emit(
                 "scan:error",
                 serde_json::json!({
-                    "message": format!("scan task panicked: {join_err}"),
+                    "message": "The scan stopped unexpectedly. Please try again.",
                     "recoverable": false,
                 }),
             );

@@ -2,12 +2,13 @@
 import Button from '$lib/components/Button.svelte';
 import {
   DiskList,
+  ErrorBoundary,
   FileTable,
   PermissionGate,
   ProbabilityPanel,
   RecoveryModal,
 } from '$lib/components/index.js';
-import type { DeletedFileEntry, DiskInfo } from '$lib/types';
+import type { DeletedFileEntry, DiskDisconnectedEvent, DiskInfo } from '$lib/types';
 import type { ProbabilityReport } from '$lib/types';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
@@ -61,6 +62,13 @@ async function attachScanListeners(): Promise<void> {
     }),
 
     listen<{ message: string; recoverable: boolean }>('scan:error', ({ payload }) => {
+      scanError = payload.message;
+      appState = 'error';
+    }),
+
+    // Source disk pulled mid-scan (P5-T03): surface the friendly reason and
+    // stop, so the user is never left staring at a frozen progress bar.
+    listen<DiskDisconnectedEvent>('disk:disconnected', ({ payload }) => {
       scanError = payload.message;
       appState = 'error';
     }),
@@ -182,7 +190,9 @@ function formatDuration(ms: number): string {
         <span class="panel__title">Disks</span>
       </div>
       <div class="panel__body">
-        <DiskList onselect={handleDiskSelect} />
+        <ErrorBoundary label="the disk list">
+          <DiskList onselect={handleDiskSelect} />
+        </ErrorBoundary>
       </div>
 
       {#if selectedDisk}
@@ -204,6 +214,7 @@ function formatDuration(ms: number): string {
 
     <!-- ── Right panel: results ─────────────────────────────────── -->
     <section class="panel panel--right" aria-label="Scan results">
+      <ErrorBoundary label="the scan results">
       {#if appState === 'scanning'}
         <div class="scan-progress" aria-live="polite">
           <div class="scan-progress__bar" role="progressbar" aria-label="Scanning…">
@@ -247,6 +258,7 @@ function formatDuration(ms: number): string {
           </div>
         {/if}
       {/if}
+      </ErrorBoundary>
     </section>
   </div>
 </main>

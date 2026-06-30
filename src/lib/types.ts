@@ -91,3 +91,11 @@ export interface RecoveryCompleteEvent {
   cancelled: boolean;
   total: number;
 }
+
+// ── Disconnection (P5-T03) ────────────────────────────────────────────────────
+
+/** `disk:disconnected` — source device vanished during scan or recovery. */
+export interface DiskDisconnectedEvent {
+  disk_id: string;
+  message: string;
+}

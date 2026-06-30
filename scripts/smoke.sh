@@ -16,6 +16,10 @@
 #
 # Exit codes: 0 = pass, 1 = smoke failure, 2 = environment error (no Chrome).
 set -euo pipefail
+# Job control: the backgrounded dev server becomes its own process-group leader
+# (PGID == its PID), so cleanup can kill the whole tree — bun *and* the vite
+# child that actually binds the port — instead of just the subshell wrapper.
+set -m
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ARTIFACT_DIR="${ROOT}/.smoke"
@@ -32,10 +36,22 @@ if [ ! -x "$CHROME" ]; then
 fi
 
 # ── Boot the dev server ──────────────────────────────────────────────────────
-( cd "$ROOT" && bun dev ) >"$ARTIFACT_DIR/dev-server.log" 2>&1 &
+# `exec` so bun replaces the subshell and inherits its PID/PGID; vite is then a
+# child in the same process group.
+( cd "$ROOT" && exec bun dev ) >"$ARTIFACT_DIR/dev-server.log" 2>&1 &
 DEV_PID=$!
-cleanup() { kill "$DEV_PID" 2>/dev/null || true; }
-trap cleanup EXIT
+
+cleanup() {
+  # Signal the whole process group (negative PID) so bun and its vite child both
+  # exit; fall back to the bare PID if the group send is rejected.
+  kill -TERM -- "-${DEV_PID}" 2>/dev/null || kill -TERM "$DEV_PID" 2>/dev/null || true
+  # Belt-and-suspenders: free port 5173 if anything still lingers on it.
+  local stragglers
+  stragglers="$(lsof -ti tcp:5173 2>/dev/null || true)"
+  [ -n "$stragglers" ] && kill -TERM $stragglers 2>/dev/null || true
+  wait "$DEV_PID" 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
 
 echo "• smoke: waiting for dev server at $URL"
 for _ in $(seq 1 60); do

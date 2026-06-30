@@ -4,6 +4,7 @@ import Modal from '$lib/components/Modal.svelte';
 import ProgressBar from '$lib/components/ProgressBar.svelte';
 import type {
   DeletedFileEntry,
+  DiskDisconnectedEvent,
   DiskInfo,
   PreflightError,
   PreflightResult,
@@ -89,6 +90,12 @@ async function attachListeners(): Promise<void> {
     }),
     listen<RecoveryCompleteEvent>('recovery:complete', ({ payload }) => {
       summary = payload;
+      phase = 'done';
+    }),
+    // Source disk pulled mid-recovery (P5-T03): the engine aborts, so end the
+    // flow with the friendly reason rather than a stalled progress bar.
+    listen<DiskDisconnectedEvent>('disk:disconnected', ({ payload }) => {
+      actionError = payload.message;
       phase = 'done';
     }),
   ]);
