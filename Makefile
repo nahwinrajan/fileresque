@@ -1,10 +1,20 @@
-.PHONY: dev build test smoke lint coverage clean
+.PHONY: dev build bundle test smoke lint coverage clean
 
 dev:
 	bun tauri dev
 
 build:
 	bun tauri build
+
+# Bundle a macOS installer (.dmg) from a release build. This is an unsigned /
+# ad-hoc build for local install + testing — full code signing + notarisation
+# (P5-T01) need Apple certs supplied via env (APPLE_SIGNING_IDENTITY,
+# APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID). Runs `bun run build` (vite) first
+# via the beforeBuildCommand hook, then produces the .dmg.
+#   Output: src-tauri/target/release/bundle/dmg/FileResque_<version>_<arch>.dmg
+bundle:
+	bun tauri build --bundles dmg
+	@echo "→ installer written to: src-tauri/target/release/bundle/dmg/"
 
 test:
 	cargo test --workspace

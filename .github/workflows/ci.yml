@@ -96,6 +96,32 @@ jobs:
           files: lcov.info
           fail_ci_if_error: false
 
+  security:
+    name: Security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      # Advisories (RustSec CVEs / unmaintained / yanked) + license + source
+      # policy, all driven by deny.toml. Fails on any high/critical advisory.
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@cargo-deny
+
+      - name: cargo deny check
+        run: cargo deny check
+
+      # Redundant with `deny check advisories` but listed explicitly in P5-T05;
+      # provides a second, independently-maintained CVE view.
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@cargo-audit
+
+      - name: cargo audit
+        run: cargo audit --deny warnings
+
   build-mac:
     name: Build (macOS)
     runs-on: macos-latest

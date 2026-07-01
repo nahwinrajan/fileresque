@@ -30,6 +30,21 @@ export default defineConfig(({ mode }) => ({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      // Measure only first-party source. Without an explicit include, v8 also
+      // counts Vite/SvelteKit cache artifacts (e.g. hashed `out/*api-script.js`)
+      // which are not our code and falsely depress the ratio.
+      include: ['src/**/*.{ts,svelte}'],
+      exclude: [
+        'src/**/*.{test,spec}.{js,ts,svelte}',
+        'src/**/*.d.ts',
+        // Barrel re-exports — no runtime logic to cover.
+        'src/**/index.ts',
+        // Type-only module: interfaces compile away, nothing to execute.
+        'src/lib/types.ts',
+        // SvelteKit framework shell (load fn + reduced-motion bootstrap); the
+        // app logic lives in +page.svelte, which is covered.
+        'src/routes/+layout.*',
+      ],
       thresholds: {
         lines: 70,
         functions: 70,

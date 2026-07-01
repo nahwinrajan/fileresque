@@ -1,0 +1,54 @@
+# cargo-deny configuration — supply-chain gate for FileResque (P5-T05).
+#
+# Enforced in CI (.github/workflows/ci.yml → security job). Covers:
+#   - advisories: RustSec CVE / unmaintained / yanked checks
+#   - licenses:   permissive allow-list (deny copyleft/unknown by omission)
+#   - bans:       no multiple-version drift left unreviewed; no wildcard deps
+#   - sources:    crates.io only — no git/unknown registries (supply-chain)
+#
+# Run locally: cargo deny check
+
+[graph]
+all-features = true
+
+[advisories]
+version = 2
+# Fail on any advisory. yanked crates are also rejected.
+yanked = "deny"
+# Empty = no CVEs are ignored. Any addition here must carry a justification
+# comment and a tracking issue, reviewed by 🔴 Security.
+ignore = []
+
+[licenses]
+version = 2
+# Permissive licenses only. A dependency under anything not listed here fails
+# the build and must be reviewed by 🔴 Security before an allow is added.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "MPL-2.0",
+    "CC0-1.0",
+]
+# Confidence required to accept a detected license expression.
+confidence-threshold = 0.9
+
+[bans]
+# Catch accidental duplicate major versions (bloat / divergent security fixes).
+multiple-versions = "warn"
+# Wildcard version requirements are forbidden — they undermine reproducible,
+# auditable builds.
+wildcards = "deny"
+
+[sources]
+# Only crates.io. Any git or alternative-registry dependency must be explicitly
+# allow-listed here after 🔴 Security review (supply-chain integrity).
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

@@ -22,6 +22,10 @@ const {
 // biome-ignore lint/style/useConst: bind:this in the template reassigns panelEl at runtime; Biome's static analysis cannot see Svelte template assignments
 let panelEl: HTMLDivElement | undefined = $state();
 
+// The element that had focus before the modal opened, so it can be restored on
+// close (WCAG 2.4.3). Not reactive — only read in the effect cleanup.
+let previouslyFocused: HTMLElement | null = null;
+
 const prefersReducedMotion =
   typeof window !== 'undefined'
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -30,6 +34,9 @@ const prefersReducedMotion =
 // Run entrance animation whenever the modal opens and the panel element exists.
 $effect(() => {
   if (!open || !panelEl) return;
+
+  // Remember the trigger so focus can be handed back when the modal closes.
+  previouslyFocused = document.activeElement as HTMLElement | null;
 
   if (prefersReducedMotion) {
     panelEl.style.opacity = '1';
@@ -45,12 +52,48 @@ $effect(() => {
   // Move focus inside the panel; tabindex="-1" allows it to receive focus
   // programmatically without appearing in the tab order.
   panelEl.focus();
+
+  // On close (panel unmounts → effect re-runs), return focus to the trigger.
+  return () => previouslyFocused?.focus();
 });
 
 function handleKeydown(e: KeyboardEvent): void {
   // Guard: only respond when modal is actually open.
-  if (!open || e.key !== 'Escape') return;
-  onclose?.();
+  if (!open) return;
+  if (e.key === 'Escape') {
+    onclose?.();
+  } else if (e.key === 'Tab') {
+    trapFocus(e);
+  }
+}
+
+// Keep Tab focus inside the open dialog (WCAG 2.1.2 No Keyboard Trap is about
+// being able to *leave* widgets; a modal legitimately contains focus until it
+// is dismissed, which Escape always allows). Wraps at both ends and reels focus
+// back in if it ever lands outside the panel.
+function trapFocus(e: KeyboardEvent): void {
+  if (!panelEl) return;
+  const focusable = panelEl.querySelectorAll<HTMLElement>(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  );
+  if (focusable.length === 0) {
+    e.preventDefault();
+    panelEl.focus();
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+  if (!panelEl.contains(active)) {
+    e.preventDefault();
+    first.focus();
+  } else if (e.shiftKey && active === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && active === last) {
+    e.preventDefault();
+    first.focus();
+  }
 }
 
 // Close only when the click lands on the backdrop itself, not inside the panel.

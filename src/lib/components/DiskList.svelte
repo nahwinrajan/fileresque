@@ -16,21 +16,21 @@ const { onselect }: Props = $props();
 type DriveType = DiskInfo['drive_type'];
 type LoadState = 'loading' | 'error' | 'empty' | 'ready';
 
-let state = $state<LoadState>('loading');
+let loadState = $state<LoadState>('loading');
 let disks = $state<DiskInfo[]>([]);
 let errorMessage = $state<string>('');
 let selectedId = $state<string | null>(null);
 
 async function loadDisks(): Promise<void> {
-  state = 'loading';
+  loadState = 'loading';
   errorMessage = '';
   try {
     const result = await invoke<DiskInfo[]>('get_disks');
     disks = result;
-    state = result.length === 0 ? 'empty' : 'ready';
+    loadState = result.length === 0 ? 'empty' : 'ready';
   } catch (err) {
     errorMessage = err instanceof Error ? err.message : String(err);
-    state = 'error';
+    loadState = 'error';
   }
 }
 
@@ -57,7 +57,7 @@ $effect(() => {
 </script>
 
 <div class="disk-list">
-  {#if state === 'loading'}
+  {#if loadState === 'loading'}
     <div class="state-container">
       {#each [0, 1, 2] as _}
         <div class="skeleton-card" aria-hidden="true">
@@ -69,7 +69,7 @@ $effect(() => {
         </div>
       {/each}
     </div>
-  {:else if state === 'error'}
+  {:else if loadState === 'error'}
     <div class="state-container state-container--centered">
       <AlertCircle size={32} color="var(--color-danger)" strokeWidth={1.5} />
       <p class="state-message">
@@ -82,7 +82,7 @@ $effect(() => {
         Retry
       </Button>
     </div>
-  {:else if state === 'empty'}
+  {:else if loadState === 'empty'}
     <div class="state-container state-container--centered">
       <Disc3 size={32} color="var(--color-text-secondary)" strokeWidth={1.5} />
       <p class="state-message">No disks found.</p>
