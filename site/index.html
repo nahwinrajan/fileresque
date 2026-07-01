@@ -36,9 +36,10 @@
         --ink: #1c2530;
         --muted: #5b6675;
         --line: #e4e8ee;
-        --blue: #3a7bd5;
-        --blue-dark: #2c63b0;
+        --link: #b45309;
+        --mauve: #6d28d9;
         --amber: #ffb020;
+        --amber-dark: #f59410;
         --amber-soft: #ffd873;
         --coral: #ff8a3d;
         --green: #2f9e5f;
@@ -66,14 +67,14 @@
         -webkit-font-smoothing: antialiased;
       }
       a {
-        color: var(--blue);
+        color: var(--link);
         text-decoration: none;
       }
       a:hover {
         text-decoration: underline;
       }
       :focus-visible {
-        outline: 3px solid var(--blue);
+        outline: 3px solid var(--mauve);
         outline-offset: 3px;
         border-radius: 6px;
       }
@@ -132,7 +133,7 @@
         letter-spacing: -0.01em;
       }
       .wordmark b {
-        color: var(--blue);
+        color: var(--link);
         font-weight: 700;
       }
       .nav-links {
@@ -204,12 +205,12 @@
         transform: translateY(-1px);
       }
       .btn-primary {
-        background: var(--blue);
-        color: #fff;
-        box-shadow: 0 8px 20px -8px rgba(58, 123, 213, 0.6);
+        background: var(--amber);
+        color: var(--ink); /* white fails on amber (1.83:1); ink is 8.46:1 */
+        box-shadow: 0 8px 20px -8px rgba(255, 176, 32, 0.55);
       }
       .btn-primary:hover {
-        background: var(--blue-dark);
+        background: var(--amber-dark);
       }
       .btn-secondary {
         background: var(--surface);
@@ -323,8 +324,8 @@
         width: 38px;
         height: 38px;
         border-radius: 50%;
-        background: var(--blue);
-        color: #fff;
+        background: var(--amber);
+        color: var(--ink);
         font-weight: 700;
         margin-bottom: 14px;
       }

@@ -163,12 +163,13 @@ function handleBackdropKeydown(e: KeyboardEvent): void {
 {/if}
 
 <style>
-  /* Backdrop — colour-mix avoids hardcoding the rgba value;
-     --color-bg-void (#070912) at 85% opacity matches the spec. */
+  /* Backdrop scrim. On the light Rescue Beacon theme the dimming colour must be
+     the INK, not a surface tone — a light scrim over light content is invisible.
+     Derived from --color-text-primary (#1C2530) so it stays token-driven. */
   .modal__backdrop {
     position: fixed;
     inset: 0;
-    background: color-mix(in srgb, var(--color-bg-void) 85%, transparent);
+    background: color-mix(in srgb, var(--color-text-primary) 45%, transparent);
     z-index: var(--z-overlay);
     display: flex;
     align-items: center;

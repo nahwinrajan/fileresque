@@ -300,7 +300,9 @@ function formatDuration(ms: number): string {
   }
 
   .wordmark strong {
-    color: var(--color-accent-primary);
+    /* Amber primary (#FFB020) fails text contrast (1.83:1); use the text-safe
+       warm amber so the wordmark reads clearly on the light titlebar. */
+    color: var(--color-warning);
     font-weight: var(--font-weight-semibold);
   }
 
@@ -411,7 +413,7 @@ function formatDuration(ms: number): string {
     padding: var(--space-2) var(--space-4);
     border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
-    background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+    background: color-mix(in srgb, var(--color-danger) 12%, transparent);
   }
 
   .scan-error__msg {

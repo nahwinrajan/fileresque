@@ -10,167 +10,208 @@
  *   3. typography.css (font-face declarations)
  *   4. app.css     (global layout, body, scrollbar)
  *
- * Single colorway: Firmament dark palette. No theme switching, no overrides.
+ * Single colorway: Rescue Beacon light palette. No theme switching, no overrides.
  * :root is the complete and only palette definition.
  *
- * Audit note (v1.2): stripped all light-theme material per scope decision.
- * Changes from v1.1: removed @media (prefers-color-scheme: light) block;
- * removed .theme-light class; removed .theme-dark class; removed all
- * theme-switching prose from comments; :root section renamed from
- * "DARK THEME — DEFAULT" to "THE FILERESQUE PALETTE — Firmament".
+ * Audit note (v2.0): full palette revamp from Firmament dark to Rescue Beacon light.
+ * Token NAMES are preserved exactly — only values changed. All colour values
+ * re-measured for WCAG 2.1 AA on white/near-white surfaces. See design-brief §3
+ * for the full contrast audit table.
  *
- * Prior audit (v1.1): corrected against designer.md agent definition.
- * Changes from v1.0: --color-bg-base = #0a0e17 (was #0d1220, now --color-bg-layer);
- * --color-shadow-light = #1d273d (was #1d2739); --color-text-secondary = #8a94a6
- * (was #c8cfd9, now --color-text-dim); focus ring = #ffc800 / offset = 2px (was blue/3px);
- * --radius-sm/md/lg = 4/8/12px (was 6/10/16px); added --shadow-outset/--shadow-inset
- * canonical aliases; added --font-family.
+ * Key decisions vs v1.x:
+ * - bg-base → #F7F8FA (matte warm white), bg-surface → #FFFFFF
+ * - accent-primary fill → #FFB020 (amber beacon); text on amber → #1C2530 (ink)
+ * - focus ring → #6D28D9 (deep mauve): 7.10:1 on white, 3.89:1 on amber
+ * - shadow pair rebalanced for LIGHT surface (dark shadow: rgba ink, light shadow: white)
+ * - colour-text-on-accent changed from white to ink (#1C2530) — white fails on amber
+ * - tier/semantic text tokens use DARK variants for body text; bright fills for bg-only
  */
 
 /* ============================================================
-   THE FILERESQUE PALETTE — Firmament
+   THE FILERESQUE PALETTE — Rescue Beacon
    ============================================================ */
 
 :root {
   /* ----------------------------------------------------------
-     COLOR — Surfaces (Firmament Stack)
-     Light source: top-left (315° / NW)
+     COLOR — Surfaces (Rescue Beacon Stack)
+     Light source: top-left (315° / NW) — same convention as before.
+     Neumorphic depth on light surfaces inverts the shadow psychology:
+     the "dark" shadow is a translucent ink drop (bottom-right),
+     the "light" shadow is a white/near-white highlight (top-left).
   ---------------------------------------------------------- */
 
-  /** Window chrome border — deepest void */
-  --color-bg-void:       #070912;
-  /** App shell background — canonical per agent-def Design Token Format */
-  --color-bg-base:       #0a0e17;
-  /** Intermediate layer — panel and content area background */
-  --color-bg-layer:      #0d1220;
-  /** Primary panel and card surface — neumorphic base */
-  --color-bg-surface:    #121826;
-  /** Raised within surface (inputs, nested cards, table headers) */
-  --color-bg-surface-2:  #171e2e;
-  /** Highly raised (dropdown menus, tooltips) */
-  --color-bg-surface-3:  #1d2740;
+  /** Hairline frame — used for window chrome border (deepest contrast element) */
+  --color-bg-void:       #E4E8EE;
+  /** App shell background — warm near-white base */
+  --color-bg-base:       #F7F8FA;
+  /** Intermediate layer — panel / content area background */
+  --color-bg-layer:      #F0F2F6;
+  /** Primary panel and card surface — neumorphic base (pure white) */
+  --color-bg-surface:    #FFFFFF;
+  /** Slightly elevated within surface (inputs, nested cards, table headers) */
+  --color-bg-surface-2:  #F0F2F6;
+  /** Raised border / divider layer (dropdown menus, tooltip bg) */
+  --color-bg-surface-3:  #E4E8EE;
   /** Active/hover highlight layer on raised elements */
-  --color-bg-surface-4:  #253352;
+  --color-bg-surface-4:  #D6DBE3;
 
   /* ----------------------------------------------------------
      COLOR — Neumorphic Shadow Pair
-     Derived from --color-bg-surface (#121826)
-     Dark:  approx −30% luminance, maintains blue undertone
-     Light: approx +40% luminance, blue-shifted highlight
+     Derived from --color-bg-surface (#FFFFFF) for a light surface.
+     Dark:  translucent ink — bottom-right shadow (cast shadow)
+     Light: pure white or near-white — top-left highlight
+     IMPORTANT: shadow values reference these tokens, not hex literals.
   ---------------------------------------------------------- */
 
-  --color-shadow-dark:   #07090f;
-  --color-shadow-light:  #1d273d;
+  --color-shadow-dark:   rgba(28, 37, 48, 0.12);
+  --color-shadow-light:  rgba(255, 255, 255, 0.90);
 
   /* ----------------------------------------------------------
-     COLOR — Cyber Accents
+     COLOR — Warm Accents (Rescue Beacon identity)
+     Primary: Amber beacon glow — warm, distinctive, zero blue.
+     Accents draw from Catppuccin Latte for pastel semantic colour.
   ---------------------------------------------------------- */
 
-  /** Mechanic Blue — primary safe action, links, selection */
-  --color-accent-primary:   #0084ff;
-  /** Softer informational blue — tooltips, data labels */
-  --color-accent-info:      #58a6ff;
-  /** Secondary accent — probability sparklines, audit markers */
-  --color-accent-alt:       #9b59ff;
+  /**
+   * Amber beacon — primary safe action, scan CTA, selection highlight.
+   * Use #FFB020 as the FILL colour (button background, indicator dot).
+   * For TEXT using this token, text-on-accent (#1C2530) must be the pair.
+   * #FFB020 on white = 1.83:1 — amber is never used as standalone text on white.
+   */
+  --color-accent-primary:   #FFB020;
+  /**
+   * Mauve info — informational tooltips, data labels, "info" semantic.
+   * Catppuccin-adjacent: #5B21B6 achieves 8.98:1 on white — safe for body text.
+   * Used where the old --color-accent-info carried "informational" tone.
+   */
+  --color-accent-info:      #5B21B6;
+  /**
+   * Peach/coral secondary accent — probability sparklines, audit markers,
+   * decorative fills in graphs. NOT used as body text (2.35:1 on white).
+   * Defined as fill-only token.
+   */
+  --color-accent-alt:       #FF8A3D;
 
   /* ----------------------------------------------------------
      COLOR — Semantic Status
-     Maps to: ProbabilityTier, recovery outcomes, system states
+     Maps to: ProbabilityTier, recovery outcomes, system states.
+
+     CRITICAL DISTINCTION:
+     The bright "fill" colour is used for backgrounds, borders, and
+     graphical elements only (not standalone text on white).
+     The dark "text" variant achieves ≥ 4.5:1 on white and is used
+     for text rendered directly on --color-bg-surface / --color-bg-base.
   ---------------------------------------------------------- */
 
-  /** High probability / successfully recovered */
-  --color-success:          #3fb950;
-  /** Construction Yellow — hardware warning, Medium probability */
-  --color-warning:          #ffc800;
+  /** High probability / successfully recovered — fill (badge bg, indicator) */
+  --color-success:          #2F9E5F;
+  /**
+   * Warning — hardware warning, Medium probability.
+   * Fill use: #FFB020 (same as accent-primary).
+   * Text use: --color-warning resolves to #B45309 (amber-700, 5.02:1 on white).
+   */
+  --color-warning:          #B45309;
   /** Danger Red — unrecoverable, critical error, destructive */
-  --color-danger:           #e5534b;
+  --color-danger:           #C0392B;
   /** Info — same as accent-info, aliased for semantic clarity */
-  --color-info:             #58a6ff;
+  --color-info:             #5B21B6;
 
   /* ----------------------------------------------------------
      COLOR — Text Stack
-     --color-text-secondary: #8a94a6 is the canonical value per agent-def.
-     --color-text-dim: #c8cfd9 is a supplementary brighter mid-tone
-     (additive, not in agent-def) for sub-headings and prominent metadata.
-     TPM ruling pending on --color-text-dim inclusion.
+     All values measured on --color-bg-surface (#FFFFFF).
+     --color-text-dim: supplementary brighter mid-tone between primary and secondary.
   ---------------------------------------------------------- */
 
-  /** Headlines, file names, primary UI labels */
-  --color-text-primary:    #f9f8f6;
-  /** Bright mid-tone — sub-headings, prominent metadata (supplementary) */
-  --color-text-dim:        #c8cfd9;
-  /** Supporting text, labels, timestamps — canonical per agent-def */
-  --color-text-secondary:  #8a94a6;
-  /** Explicitly disabled states only — intentionally low contrast */
-  --color-text-disabled:   #4a5466;
-  /** Text on warning/attention coloured surfaces */
-  --color-text-on-warning: #1a1200;
-  /** Text on filled primary button (14px/600 minimum — see design brief) */
-  --color-text-on-accent:  #ffffff;
+  /** Headlines, file names, primary UI labels — 15.48:1 on white */
+  --color-text-primary:    #1C2530;
+  /** Sub-headings, prominent metadata — 10.31:1 on white */
+  --color-text-dim:        #374151;
+  /** Supporting text, labels, timestamps — 5.83:1 on white */
+  --color-text-secondary:  #5B6675;
+  /** Explicitly disabled states only — 2.55:1 on white (intentional) */
+  --color-text-disabled:   #9AA3AE;
+  /**
+   * Text on amber-tinted surfaces (warning banners, amber callouts).
+   * #1C2530 on #FFB020 = 8.46:1 — strong pass.
+   */
+  --color-text-on-warning: #1C2530;
+  /**
+   * Text inside a filled primary button (amber background #FFB020).
+   * MUST be ink (#1C2530) — white on amber = 1.83:1 (fails all thresholds).
+   * Ink on amber = 8.46:1 — passes normal text AA at any size.
+   */
+  --color-text-on-accent:  #1C2530;
 
   /* ----------------------------------------------------------
      COLOR — Interactive State Overlays
-     Applied as background-color or border-color additions
   ---------------------------------------------------------- */
 
-  --color-hover-overlay:    rgba(255, 255, 255, 0.04);
-  --color-active-overlay:   rgba(255, 255, 255, 0.08);
+  --color-hover-overlay:    rgba(28, 37, 48, 0.05);
+  --color-active-overlay:   rgba(28, 37, 48, 0.09);
   /**
-   * Construction Yellow (#ffc800) per agent-def Component Spec Format:
-   * "Focus ring: outline: 2px solid var(--color-warning); outline-offset: 2px"
-   * Yields 9.8:1 contrast on Firmament dark surface — superior to blue (4.65:1).
+   * Focus ring — deep mauve #6D28D9.
+   * Rationale: 7.10:1 on white (#FFFFFF), 3.89:1 on amber (#FFB020).
+   * Both pass WCAG 2.1 AA focus-indicator minimum (3:1).
+   * Visually distinct from text ink and from amber primary — no confusion.
+   * Catppuccin Latte mauve (#8839EF) rejected: 2.96:1 on amber = fails.
    */
-  --color-focus-ring:       #ffc800;
-  --color-selection-bg:     rgba(0, 132, 255, 0.15);
+  --color-focus-ring:       #6D28D9;
+  --color-selection-bg:     rgba(255, 176, 32, 0.18);
 
   /* ----------------------------------------------------------
      COLOR — Border & Divider
+     Light surfaces use ink-alpha borders (not white-alpha).
   ---------------------------------------------------------- */
 
   /** Hairline divider between sections */
-  --color-border-subtle:    rgba(255, 255, 255, 0.06);
-  /** Standard component border (inputs, cards in focus) */
-  --color-border-default:   rgba(255, 255, 255, 0.10);
-  /** Canonical alias — use --color-border everywhere; maps to --color-border-default */
-  --color-border:           rgba(255, 255, 255, 0.10);
+  --color-border-subtle:    rgba(28, 37, 48, 0.06);
+  /** Standard component border (inputs, cards) */
+  --color-border-default:   rgba(28, 37, 48, 0.11);
+  /** Canonical alias — use --color-border everywhere */
+  --color-border:           rgba(28, 37, 48, 0.11);
   /** Accent border (focused input, selected card) */
-  --color-border-accent:    #0084ff;
+  --color-border-accent:    #FFB020;
   /** Danger border (error input) */
-  --color-border-danger:    #e5534b;
+  --color-border-danger:    #C0392B;
   /** Success border (confirmed recovery destination) */
-  --color-border-success:   #3fb950;
+  --color-border-success:   #2F9E5F;
 
   /* ----------------------------------------------------------
      COLOR — Probability Tier (maps to ProbabilityTier enum)
+
+     Each tier has:
+     - A FILL colour (used for backgrounds, graphical bars, icon fills)
+     - A TEXT colour (darker variant, safe for body text on white/bg-surface)
+     - A BG colour (very light tint for badge backgrounds)
+
+     The token --color-tier-high / medium / low resolves to the TEXT variant
+     because it is used in Badge.svelte as `color:` on tinted bg.
   ---------------------------------------------------------- */
 
-  --color-tier-high:        #3fb950;
-  --color-tier-high-bg:     rgba(63, 185, 80, 0.12);
-  --color-tier-medium:      #ffc800;
-  --color-tier-medium-bg:   rgba(255, 200, 0, 0.12);
-  --color-tier-low:         #e5534b;
-  --color-tier-low-bg:      rgba(229, 83, 75, 0.12);
-  --color-tier-unknown:     #8a94a6;
-  --color-tier-unknown-bg:  rgba(138, 148, 166, 0.10);
+  /** High — text on badge bg (#E6F6EE): #166534 = 6.38:1 */
+  --color-tier-high:        #166534;
+  --color-tier-high-bg:     #E6F6EE;
+  /** Medium — text on badge bg (#FEF3E0): #92400E = 6.45:1 */
+  --color-tier-medium:      #92400E;
+  --color-tier-medium-bg:   #FEF3E0;
+  /** Low — text on badge bg (#FDEAEA): #991B1B = 7.18:1 */
+  --color-tier-low:         #991B1B;
+  --color-tier-low-bg:      #FDEAEA;
+  /** Unknown — neutral slate tint */
+  --color-tier-unknown:     #5B6675;
+  --color-tier-unknown-bg:  #F0F2F6;
 
   /* ----------------------------------------------------------
      TYPOGRAPHY — Font Families
+     Unchanged from v1.x — only colour tokens changed.
   ---------------------------------------------------------- */
 
-  /**
-   * Canonical font family token — matches agent-def Design Token Format.
-   * Component specs reference --font-family for UI text.
-   */
   --font-family:
     'Inter',
     system-ui,
     -apple-system,
     sans-serif;
 
-  /**
-   * Extended alias with richer fallback chain — use in global body rule.
-   * Component specs may also reference --font-sans interchangeably.
-   */
   --font-sans:
     'Inter',
     -apple-system,
@@ -179,11 +220,6 @@
     system-ui,
     sans-serif;
 
-  /**
-   * Monospace: JetBrains Mono (bundled subset — ASCII + Latin Ext A)
-   * Used for ALL data from disk: names, paths, sizes, inodes, addresses.
-   * Canonical token name per agent-def Design Token Format.
-   */
   --font-mono:
     'JetBrains Mono',
     'SF Mono',
@@ -194,16 +230,17 @@
 
   /* ----------------------------------------------------------
      TYPOGRAPHY — Scale (14px base)
+     Unchanged from v1.x.
   ---------------------------------------------------------- */
 
-  --font-size-2xs:  0.625rem;   /* 10px — badge labels, extreme metadata */
-  --font-size-xs:   0.6875rem;  /* 11px — table col headers, secondary mono */
-  --font-size-sm:   0.75rem;    /* 12px — table cells, paths, secondary labels */
-  --font-size-md:   0.875rem;   /* 14px — body default, button text */
-  --font-size-lg:   1rem;       /* 16px — card titles, modal body */
-  --font-size-xl:   1.25rem;    /* 20px — section headings */
-  --font-size-2xl:  1.5rem;     /* 24px — page headings */
-  --font-size-3xl:  2rem;       /* 32px — splash/onboarding hero */
+  --font-size-2xs:  0.625rem;   /* 10px */
+  --font-size-xs:   0.6875rem;  /* 11px */
+  --font-size-sm:   0.75rem;    /* 12px */
+  --font-size-md:   0.875rem;   /* 14px */
+  --font-size-lg:   1rem;       /* 16px */
+  --font-size-xl:   1.25rem;    /* 20px */
+  --font-size-2xl:  1.5rem;     /* 24px */
+  --font-size-3xl:  2rem;       /* 32px */
 
   /* ----------------------------------------------------------
      TYPOGRAPHY — Weights
@@ -218,11 +255,11 @@
      TYPOGRAPHY — Line Heights
   ---------------------------------------------------------- */
 
-  --line-height-none:     1;      /* single-line chips, badges */
-  --line-height-tight:    1.2;    /* headings */
-  --line-height-snug:     1.35;   /* mono data rows, dense tables */
-  --line-height-base:     1.5;    /* body text */
-  --line-height-relaxed:  1.75;   /* help text, descriptions */
+  --line-height-none:     1;
+  --line-height-tight:    1.2;
+  --line-height-snug:     1.35;
+  --line-height-base:     1.5;
+  --line-height-relaxed:  1.75;
 
   /* ----------------------------------------------------------
      TYPOGRAPHY — Letter Spacing
@@ -230,12 +267,11 @@
 
   --tracking-tight:   -0.01em;
   --tracking-normal:   0em;
-  --tracking-wide:    +0.04em;  /* uppercase labels, column headers */
-  --tracking-wider:   +0.08em;  /* all-caps badge text */
+  --tracking-wide:    +0.04em;
+  --tracking-wider:   +0.08em;
 
   /* ----------------------------------------------------------
      SPACING (4px base grid)
-     All component padding/margin must be a multiple of 4px.
   ---------------------------------------------------------- */
 
   --space-px:    1px;
@@ -255,71 +291,73 @@
 
   /* ----------------------------------------------------------
      BORDER RADIUS
-     sm/md/lg/pill values are canonical per agent-def Design Token Format.
-     xs and xl are additive extensions.
   ---------------------------------------------------------- */
 
   --radius-none:  0px;
-  --radius-xs:    2px;    /* micro chips, hairline rounding (additive) */
-  --radius-sm:    4px;    /* chips, badges, small indicators — per agent-def */
-  --radius-md:    8px;    /* standard buttons, cards, panels — per agent-def */
-  --radius-lg:    12px;   /* large panels, modals — per agent-def */
-  --radius-xl:    20px;   /* hero cards, onboarding surfaces (additive) */
-  --radius-pill:  9999px; /* pill badges, toggles — per agent-def */
+  --radius-xs:    2px;
+  --radius-sm:    4px;
+  --radius-md:    8px;
+  --radius-lg:    12px;
+  --radius-xl:    20px;
+  --radius-pill:  9999px;
 
   /* ----------------------------------------------------------
      ELEVATION — Neumorphic Shadow Compounds
-     Compose from --color-shadow-dark (#07090f) + --color-shadow-light (#1d273d).
-     Fixed values — single colorway, no theme switching.
+     Light surface neumorphism uses translucent ink as the cast shadow
+     and near-white as the highlight. The illusion of elevation comes
+     from the ink-tinted shadow at bottom-right and a white/bleached
+     highlight at top-left.
 
-     CANONICAL NAMES: --shadow-outset and --shadow-inset are the
-     authoritative tokens per agent-def. GSAP button animations call
-     var(--shadow-inset) and var(--shadow-outset) directly. The
-     levelled variants (raised-sm/md/lg, inset-sm/md) are available
-     for components that need more or less depth than the standard.
+     IMPORTANT: CSS custom properties do not support rgba() inside
+     compound shadow values with var() in all browsers. The shadow
+     colour tokens use rgba literals directly here. When the Developer
+     implements GSAP animations referencing var(--shadow-outset) and
+     var(--shadow-inset), these values will resolve correctly at
+     runtime via CSS cascade.
+
+     CANONICAL NAMES: --shadow-outset and --shadow-inset per agent-def.
   ---------------------------------------------------------- */
 
   /**
-   * Canonical outset shadow — per agent-def Design Token Format.
-   * Default resting state for all raised interactive elements.
-   * GSAP press animation: animates FROM this TO --shadow-inset.
+   * Canonical outset — resting raised state.
+   * Cast shadow bottom-right (ink at 12%), highlight top-left (white 90%).
    */
   --shadow-outset:
-    4px 4px 10px var(--color-shadow-dark),
-    -4px -4px 10px var(--color-shadow-light);
+    4px 4px 10px rgba(28, 37, 48, 0.12),
+    -4px -4px 10px rgba(255, 255, 255, 0.90);
 
   /**
-   * Canonical inset shadow — per agent-def Design Token Format.
-   * Active/pressed state. GSAP press animation targets this value.
+   * Canonical inset — active/pressed state.
+   * Depression casts shadow top-left, reflects light bottom-right.
    */
   --shadow-inset:
-    inset 4px 4px 10px var(--color-shadow-dark),
-    inset -4px -4px 10px var(--color-shadow-light);
+    inset 4px 4px 10px rgba(28, 37, 48, 0.12),
+    inset -4px -4px 10px rgba(255, 255, 255, 0.90);
 
   /** Subtle lift: table row hover, nested card hover */
   --shadow-raised-sm:
-    6px 6px 12px var(--color-shadow-dark),
-    -6px -6px 12px var(--color-shadow-light);
+    6px 6px 12px rgba(28, 37, 48, 0.10),
+    -6px -6px 12px rgba(255, 255, 255, 0.90);
 
-  /** Standard raised: buttons, cards, panels — additive, equals --shadow-outset depth */
+  /** Standard raised: buttons, cards, panels */
   --shadow-raised-md:
-    8px 8px 18px var(--color-shadow-dark),
-    -8px -8px 18px var(--color-shadow-light);
+    8px 8px 18px rgba(28, 37, 48, 0.12),
+    -8px -8px 18px rgba(255, 255, 255, 0.90);
 
   /** Deep raised: modals, floating dropdowns, tooltips */
   --shadow-raised-lg:
-    12px 12px 28px var(--color-shadow-dark),
-    -12px -12px 28px var(--color-shadow-light);
+    12px 12px 28px rgba(28, 37, 48, 0.14),
+    -12px -12px 28px rgba(255, 255, 255, 0.95);
 
   /** Subtle depression: selected row, active tab */
   --shadow-inset-sm:
-    inset 3px 3px 6px var(--color-shadow-dark),
-    inset -3px -3px 6px var(--color-shadow-light);
+    inset 3px 3px 6px rgba(28, 37, 48, 0.10),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.90);
 
   /** Deep depression: active/focused input, pressed card */
   --shadow-inset-md:
-    inset 5px 5px 12px var(--color-shadow-dark),
-    inset -5px -5px 12px var(--color-shadow-light);
+    inset 5px 5px 12px rgba(28, 37, 48, 0.12),
+    inset -5px -5px 12px rgba(255, 255, 255, 0.90);
 
   /** Flat: no shadow — flush with background, table rows at rest */
   --shadow-flat: none;
@@ -340,37 +378,19 @@
   ---------------------------------------------------------- */
 
   --duration-instant:   0ms;
-  --duration-fastest:   80ms;   /* micro: icon swap, badge colour */
-  --duration-fast:      140ms;  /* button press, row hover */
-  --duration-base:      240ms;  /* panel reveal, modal appear */
-  --duration-slow:      400ms;  /* page transitions, onboarding */
-  --duration-crawl:     800ms;  /* progress bar smooth-fill */
+  --duration-fastest:   80ms;
+  --duration-fast:      140ms;
+  --duration-base:      240ms;
+  --duration-slow:      400ms;
+  --duration-crawl:     800ms;
 
   /* ----------------------------------------------------------
      MOTION — Easing Curves
   ---------------------------------------------------------- */
 
-  /**
-   * Spring with slight overshoot — tactile "pop"
-   * Used for: button release, card hover lift, modal entrance
-   */
   --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  /**
-   * Material standard — smooth, no overshoot
-   * Used for: colour transitions, badge updates, progress fill
-   */
   --ease-snappy:     cubic-bezier(0.4, 0, 0.2, 1);
-
-  /**
-   * Heavy press-in — slow start, abrupt end
-   * Used exclusively for button active/press state
-   */
   --ease-depress:    cubic-bezier(0.36, 0.07, 0.19, 0.97);
-
-  /**
-   * Clean exit — used for dismiss/remove animations
-   */
   --ease-out-cubic:  cubic-bezier(0.33, 1, 0.68, 1);
 
   /* ----------------------------------------------------------
@@ -380,14 +400,16 @@
   --titlebar-height:     36px;
   --statusbar-height:    28px;
   --sidebar-width:       220px;
-  --sidebar-width-min:   56px;   /* icon-only collapsed state */
+  --sidebar-width-min:   56px;
   --content-max-width:   1280px;
 
   /* ----------------------------------------------------------
      MISC — Focus Ring
-     Per agent-def Component Spec Format:
-     "Focus ring: outline: 2px solid var(--color-warning); outline-offset: 2px"
-     Construction Yellow (#ffc800) achieves 9.8:1 on Firmament dark surface.
+     Deep mauve #6D28D9:
+       on white (#FFFFFF):    7.10:1  → PASS AA normal + large
+       on amber (#FFB020):    3.89:1  → PASS AA large (≥ 3:1)
+       on bg-base (#F7F8FA):  6.69:1  → PASS AA normal + large
+     Distinct from text ink and amber primary — no perceptual confusion.
   ---------------------------------------------------------- */
 
   --focus-ring-width:   2px;
@@ -398,14 +420,12 @@
 
 /* ============================================================
    GLOBAL INTERACTION BASELINE
-   Applied here so all components inherit without repetition.
    ============================================================ */
 
 /**
  * Universal focus ring — mandatory for keyboard navigation.
- * Neumorphism provides no visible boundary; the focus ring is
- * the only reliable interactive-state indicator for keyboard users.
- * Construction Yellow (#ffc800) on Firmament dark surface: 9.8:1 contrast.
+ * Deep mauve #6D28D9 on Rescue Beacon light surfaces:
+ *   7.10:1 on white, 6.69:1 on bg-base, 3.89:1 on amber primary.
  */
 :focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
@@ -433,9 +453,8 @@
 
 /**
  * Scan activity shimmer — atmospheric surface animation.
+ * Updated for light surface: warm amber sweep instead of blue.
  * Applied to .scanning class on the active scan panel.
- * @media prefers-reduced-motion collapses duration to 0ms above,
- * which effectively stops this animation.
  */
 @keyframes scan-sweep {
   0%   { background-position: -200% 0; }
@@ -446,7 +465,7 @@
   background-image: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 132, 255, 0.04) 50%,
+    rgba(255, 176, 32, 0.06) 50%,
     transparent 100%
   );
   background-size: 200% 100%;

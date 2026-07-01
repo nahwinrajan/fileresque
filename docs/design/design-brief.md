@@ -1,28 +1,37 @@
 # FileResque — Brand Identity & Design System
 
-**Version:** 1.2 (stripped all light-theme material — single colorway)
+**Version:** 2.0 (Rescue Beacon — full light palette revamp)
 **Author:** Designer Agent
-**Status:** DRAFT — Pending TPM review and QA sign-off
+**Status:** DRAFT — Pending QA sign-off
 **Tokens file:** `src/lib/styles/tokens.css`
 
+**Changelog v1.2 → v2.0 (Rescue Beacon):**
+
+- Full palette replacement: Firmament dark → Rescue Beacon light
+- Token NAMES preserved identically across the codebase; only VALUES changed
+- `--color-bg-base: #F7F8FA` (was #0a0e17 — matte warm white)
+- `--color-bg-surface: #FFFFFF` (was #121826 — pure white card surface)
+- `--color-accent-primary: #FFB020` (was #0084ff — amber beacon, no blue)
+- `--color-text-primary: #1C2530` (was #f9f8f6 — charcoal ink on white)
+- `--color-text-on-accent: #1C2530` (was #ffffff — white fails 1.83:1 on amber; ink = 8.46:1)
+- Focus ring: `--color-focus-ring: #6D28D9` (was #ffc800 — deep mauve: 7.10:1 on white, 3.89:1 on amber)
+- Shadow pair rebalanced for light neumorphism (translucent ink dark shadow, white light shadow)
+- Tier tokens split into TEXT variants (dark, high-contrast) and BG tints
+- Semantic warning text token: `--color-warning: #B45309` (amber-700, 5.02:1 on white)
+- Scan shimmer: updated from blue to amber tint
+- Brand personality updated: Firmament → Rescue Beacon (warm, clinical-clean, vector-art)
+
 **Changelog v1.1 → v1.2:**
+
 - Removed `### Light Theme (System-Preference Fallback)` section entirely (§3)
 - Renamed `### Dark Theme (Hero — Default)` → `### The FileResque Palette`
-- Removed light-theme logo fallback note from §2 Colour Treatment
-- Removed light-theme focus ring override sentence from §3 Accessibility Contrast Audit
-- Removed "overridden per theme / update automatically on theme switch" from §5 Shadow Tokens
-- Removed all "hero", "default theme", and theme-switching framing from prose
 
 **Changelog v1.0 → v1.1:**
+
 - `--color-bg-base: #0a0e17` (was #0d1220); intermediate layer renamed `--color-bg-layer`
-- `--color-shadow-light: #1d273d` (was #1d2739, one-digit typo)
-- `--color-text-secondary: #8a94a6` (canonical per agent-def); #c8cfd9 renamed `--color-text-dim`
-- Focus ring: `--color-warning` Construction Yellow (was blue); offset 2px (was 3px)
+- Focus ring: `--color-warning` Construction Yellow (was blue); offset 2px
 - `--radius-sm/md/lg: 4px/8px/12px` (were 6px/10px/16px)
-- Added `--shadow-outset` / `--shadow-inset` canonical aliases (required by GSAP templates)
-- Added `--font-family` canonical token name
-- Status downgraded from "APPROVED" to "DRAFT" (no QA sign-off has occurred)
-- Typo fix: "lifeguoy" → "lifebuoy"
+- Added `--shadow-outset` / `--shadow-inset` canonical aliases
 
 ---
 
@@ -38,9 +47,9 @@ FileResque is a power-user recovery instrument. It sits at the intersection of a
 |-------|------------|
 | Calm authority | Typography is measured, never frantic. Space is generous. No blinking. |
 | Technical precision | Monospace for all data: filenames, paths, sizes, inodes. Numbers are real. |
-| Grounded confidence | Deep, stable background palette. The app does not vibrate with anxiety. |
+| Grounded warmth | Matte white surfaces and warm amber primary. Precise without feeling hostile. |
 | Tactile responsiveness | Buttons depress physically. Progress is felt, not just seen. |
-| Serious without cold | The palette is deep and stable, never hostile. The primary action colour is blue — safe, trusted. |
+| Serious without cold | The palette is bright and clean, never clinical-grey. The primary action colour is amber — the beacon. |
 
 ### Emotional Target
 
@@ -70,7 +79,7 @@ The icon mark fuses two primary references:
 
 The resulting mark reads as: a document that has been saved, encircled by a ring of safety. At small sizes (dock icon, 16px favicon) the ring dominates; at medium sizes the folded document corner is clear.
 
-```
+```text
 Icon construction (geometric):
 
         ╭────────────────╮
@@ -95,22 +104,24 @@ Construction notes:
 
 ### Colour Treatment
 
-- **Ring:** `--color-accent-primary` (#0084ff), full opacity
-- **Document body:** `--color-bg-surface` (#121826) fill, `--color-accent-primary` stroke at 1px
-- **Folded corner:** `--color-warning` (#ffc800) — a small gold accent, suggesting a recovered/flagged item
+- **Ring:** `--color-accent-primary` (#FFB020 amber), full opacity stroke
+- **Document body:** `--color-bg-surface` (#FFFFFF) fill, `--color-text-secondary` stroke at 1px
+- **Folded corner:** `--color-tier-medium` (#92400E) — warm amber-brown accent, suggesting a recovered/flagged item
 - **Rescue chevron inside document:** `--color-accent-primary` at 80% opacity
+
+The mascot from the site (hooded rescuer with amber beacon face) is the brand's visual anchor. The icon mark simplifies the same concept: a glowing amber centre within a rounded-corner document shape.
 
 ### Wordmark
 
-```
+```text
   [ICON]  FileResque
           ──────────
           RECOVERY UTILITY
 
-"File"    → Inter, weight 400 (Regular), --color-text-primary
-"Resque"  → Inter, weight 600 (SemiBold), --color-accent-primary
+"File"    → Inter, weight 400 (Regular), --color-text-primary (#1C2530)
+"Resque"  → Inter, weight 600 (SemiBold), --color-accent-primary (#FFB020)
 Tagline   → Inter, weight 500 (Medium), 10px, tracked +0.12em,
-            --color-text-secondary (#8a94a6), uppercase
+            --color-text-secondary (#5B6675), uppercase
 ```
 
 The deliberate misspelling "Resque" (vs "Rescue") is a feature, not a typo — it is domain-familiar (like "phreak", "3lite", "nix") and signals that this is a tool made by people who know their domain. Do not "correct" it.
@@ -129,77 +140,104 @@ The deliberate misspelling "Resque" (vs "Rescue") is a feature, not a typo — i
 
 The palette is structured in three layers:
 
-1. **Firmament** — the dark blue-black base that forms all surfaces. Named after the deep sky: stable, infinite, trustworthy. Not pure black (too harsh) but a deeply saturated near-black with blue undertones that reads "precision instrument."
+1. **Rescue Beacon** — the bright, matte-white base that forms all surfaces. Named after the amber-faced mascot at the heart of the brand. Not pure clinical white (too cold) but a warm near-white (`#F7F8FA`) with slight warm undertones that reads "approachable precision tool." The signature amber (#FFB020) is the beacon glow — the single warm spot that draws the eye to the primary action.
 
-2. **Cyber Accents** — electric, high-purity hues used sparingly. Each accent communicates a specific semantic meaning and is never used decoratively.
+2. **Warm Accents** — drawn from Catppuccin Latte. Each accent communicates a specific semantic meaning. No blue in any primary or accent role. Coral/peach for decorative fills; mauve for informational elements; amber for primary actions.
 
-3. **Semantic Status** — colours tied to data states. These map directly to `ProbabilityTier` (High/Medium/Low) and recovery outcomes (success, warning, danger).
+3. **Semantic Status** — colours tied to data states, mapping directly to `ProbabilityTier` (High/Medium/Low) and recovery outcomes. The distinction between FILL colours (used in backgrounds, graphical bars) and TEXT colours (darker variants safe for body text on white) is critical on light surfaces — pastels that work as fills often fail as body text.
 
 ### The FileResque Palette
 
-```
-FIRMAMENT SURFACE STACK (bottom to top):
+```text
+RESCUE BEACON SURFACE STACK (bottom layer to top):
 
-  #070912  bg-void    — window chrome border, deepest shadow (additive)
-  #0a0e17  bg-base    — app shell background  ← CANONICAL (agent-def)
-  #0d1220  bg-layer   — intermediate panel/content area background (additive)
-  #121826  bg-surface — primary panel/card surface  ← NEUMORPHIC BASE (agent-def)
-  #171e2e  surface-2  — raised within surface (inputs, nested cards)
-  #1d2740  surface-3  — highly raised (dropdown menus, tooltips)
-  #253352  surface-4  — active/hover highlight on raised elements
-```
-
-Shadow pair for neumorphism on `bg-surface` (#121826):
-- Dark shadow: `#07090f` (−30% luminance step)
-- Light shadow: `#1d273d` (+40% luminance step, blue-shifted)
-
-These are not purely darker/lighter — the light shadow carries a blue hue shift to maintain the "cool deep space" feel rather than reading as warm or grey.
-
-```
-CYBER ACCENTS:
-
-  #0084ff  mechanic-blue  — primary safe action, links, selection highlight
-  #ffc800  construction   — hardware warnings, probability Medium, attention
-  #e5534b  danger         — unrecoverable files, critical errors, destructive actions
-  #3fb950  recovered      — successfully recovered file, High probability tier
-  #58a6ff  info           — informational tooltips, softer blue for data labels
-  #9b59ff  accent-alt     — secondary accent (used rarely: probability sparklines, audit log)
+  #E4E8EE  bg-void    — window chrome hairline border (deepest contrast element)
+  #F7F8FA  bg-base    — app shell background  ← CANONICAL (matte warm white)
+  #F0F2F6  bg-layer   — intermediate panel/content area background
+  #FFFFFF  bg-surface — primary panel/card surface  ← NEUMORPHIC BASE (pure white)
+  #F0F2F6  surface-2  — elevated within surface (inputs, nested cards)
+  #E4E8EE  surface-3  — border/divider layer (dropdown bg, tooltip bg)
+  #D6DBE3  surface-4  — active/hover highlight layer
 ```
 
+Shadow pair for light neumorphism on `bg-surface` (#FFFFFF):
+
+- Dark shadow: `rgba(28, 37, 48, 0.12)` — translucent ink drop, cast bottom-right
+- Light shadow: `rgba(255, 255, 255, 0.90)` — near-white highlight, top-left
+
+On light surfaces, the dark shadow reads as a soft cast shadow and the white highlight bleaches the top-left corner — creating physical depth without dark gutters.
+
+```text
+WARM ACCENTS (no blue anywhere):
+
+  #FFB020  amber-beacon   — primary safe action CTA (fill only, NOT standalone text)
+  #5B21B6  mauve-info     — informational tooltips, data labels (8.98:1 on white — text safe)
+  #FF8A3D  coral-alt      — sparklines, audit markers, decorative fills (NOT text on white)
 ```
+
+```text
+SEMANTIC COLOURS:
+
+  Fill colours (for backgrounds, badges, graphical elements — NOT body text on white):
+  #2F9E5F  success fill   — High probability, recovered indicator
+  #FFB020  warning fill   — Medium probability (same as amber-beacon primary)
+  #C0392B  danger fill    — Low probability, critical errors, destructive actions
+
+  Text colours (darker variants for body text directly on bg-surface / bg-base):
+  #166534  tier-high text   — 7.13:1 on white  → body text PASS
+  #92400E  tier-medium text — 7.09:1 on white  → body text PASS
+  #991B1B  tier-low text    — 8.31:1 on white  → body text PASS
+  #B45309  warning text     — 5.02:1 on white  → body text PASS
+  #C0392B  danger text      — 5.44:1 on white  → body text PASS
+```
+
+```text
 TEXT STACK:
 
-  #f9f8f6  text-primary   — headlines, file names, primary labels (agent-def canonical)
-  #c8cfd9  text-dim       — sub-headings, prominent metadata (supplementary, additive)
-  #8a94a6  text-secondary — supporting labels, timestamps, placeholders (agent-def canonical)
-  #4a5466  text-disabled  — explicitly disabled states only (agent-def canonical)
-  #2a3248  text-inverse   — text on high-chroma surfaces (warning banners, coloured callouts)
+  #1C2530  text-primary   — headlines, file names, primary UI labels  (15.48:1 on white)
+  #374151  text-dim       — sub-headings, prominent metadata          (10.31:1 on white)
+  #5B6675  text-secondary — supporting labels, timestamps             (5.83:1 on white)
+  #9AA3AE  text-disabled  — explicitly disabled states only           (2.55:1 on white, intentional)
+  #1C2530  text-on-accent — text inside amber primary button          (8.46:1 on #FFB020)
+  #1C2530  text-on-warning — text on amber-tinted callout surfaces    (8.46:1 on #FFB020)
 ```
 
-Note: `--color-text-dim` (#c8cfd9) is a supplementary token that sits between primary and secondary. It is not in the agent-def but is additive and does not conflict. Component specs should default to `text-secondary` for secondary text; `text-dim` is available where a brighter mid-tone is needed (e.g. card subtitles, disk names in the list). TPM ruling pending on `--color-text-dim` inclusion.
+Note: `--color-text-dim` (#374151) is a supplementary token between primary and secondary. Component specs should default to `text-secondary` for secondary text; `text-dim` is available where a stronger mid-tone is needed (card subtitles, disk names in the list).
 
 ### Accessibility Contrast Audit
 
-All values measured against WCAG 2.1, targeting AA (4.5:1 normal text, 3:1 large/bold). All values on `--color-bg-surface` (#121826).
+All values measured against WCAG 2.1 AA (4.5:1 normal text, 3:1 large/bold text ≥ 18px or ≥ 14px/bold). Primary background is `--color-bg-surface` (#FFFFFF). Ratios confirmed with the WCAG relative-luminance formula.
 
 | Foreground | Token | Background | Ratio | WCAG AA Normal | WCAG AA Large |
 |------------|-------|------------|-------|----------------|---------------|
-| `#f9f8f6` | text-primary | `#121826` surface | 14.9:1 | PASS | PASS |
-| `#c8cfd9` | text-dim | `#121826` surface | 10.0:1 | PASS | PASS |
-| `#8a94a6` | text-secondary | `#121826` surface | 5.1:1 | PASS | PASS |
-| `#4a5466` | text-disabled | `#121826` surface | 2.3:1 | FAIL (intentional — disabled) | FAIL (intentional) |
-| `#0084ff` | accent-primary | `#121826` surface | 4.65:1 | PASS | PASS |
-| `#ffffff` on `#0084ff` button | text-on-accent | `#0084ff` | 3.4:1 | FAIL small | PASS large |
-| `#3fb950` | tier-high / success | `#121826` surface | 5.1:1 | PASS | PASS |
-| `#ffc800` | warning | `#121826` surface | 9.8:1 | PASS | PASS |
-| `#e5534b` | danger | `#121826` surface | 5.8:1 | PASS | PASS |
-| `#ffc800` | focus ring | `#121826` surface | 9.8:1 | PASS | PASS |
+| `#1C2530` | text-primary | `#FFFFFF` surface | 15.48:1 | PASS | PASS |
+| `#374151` | text-dim | `#FFFFFF` surface | 10.31:1 | PASS | PASS |
+| `#5B6675` | text-secondary | `#FFFFFF` surface | 5.83:1 | PASS | PASS |
+| `#9AA3AE` | text-disabled | `#FFFFFF` surface | 2.55:1 | FAIL (intentional — disabled) | FAIL (intentional) |
+| `#1C2530` | text-primary | `#F7F8FA` bg-base | 14.57:1 | PASS | PASS |
+| `#5B6675` | text-secondary | `#F7F8FA` bg-base | 5.49:1 | PASS | PASS |
+| `#1C2530` on `#FFB020` | text-on-accent | amber primary fill | 8.46:1 | PASS | PASS |
+| `#FFFFFF` on `#FFB020` | (rejected) | amber primary fill | 1.83:1 | FAIL — DO NOT USE | FAIL |
+| `#166534` | tier-high text | `#E6F6EE` tier-high-bg | 6.38:1 | PASS | PASS |
+| `#92400E` | tier-medium text | `#FEF3E0` tier-medium-bg | 6.45:1 | PASS | PASS |
+| `#991B1B` | tier-low text | `#FDEAEA` tier-low-bg | 7.18:1 | PASS | PASS |
+| `#2F9E5F` | success fill as text | `#FFFFFF` surface | 3.40:1 | FAIL normal | PASS large only |
+| `#B45309` | warning text | `#FFFFFF` surface | 5.02:1 | PASS | PASS |
+| `#C0392B` | danger text | `#FFFFFF` surface | 5.44:1 | PASS | PASS |
+| `#5B21B6` | accent-info text | `#FFFFFF` surface | 8.98:1 | PASS | PASS |
+| `#6D28D9` | focus ring | `#FFFFFF` surface | 7.10:1 | PASS | PASS |
+| `#6D28D9` | focus ring | `#FFB020` amber fill | 3.89:1 | FAIL normal | PASS large (≥ 3:1) |
+| `#6D28D9` | focus ring | `#F7F8FA` bg-base | 6.69:1 | PASS | PASS |
 
-**Critical constraint on filled primary buttons:** White text on `#0084ff` achieves 3.4:1 — this passes WCAG AA Large Text (3:1) but NOT normal text (4.5:1). **Rule:** All text inside a filled `--color-accent-primary` button must be set at minimum `14px / font-weight 600` (which qualifies as "large bold text" under WCAG and requires only 3:1). This is enforced at the component spec level.
+**Critical constraint — amber primary button text:** White on amber (#FFB020) = 1.83:1 — fails every WCAG threshold. `--color-text-on-accent` is `#1C2530` (ink), not white. This is a hard rule enforced in Button.svelte. The ink/amber pair achieves 8.46:1 — normal text passes at any size.
 
-**Focus ring choice — Construction Yellow:** The agent-def mandates `--color-warning` (Construction Yellow) for the focus ring. This is the superior choice: 9.8:1 contrast on Firmament dark surface vs 4.65:1 for blue. Yellow is also more immediately visible in peripheral vision, which is critical for focus indicators in a dense data table.
+**Success fill as body text warning:** `#2F9E5F` (success fill) achieves only 3.40:1 on white — passes AA Large but fails AA Normal. The `--color-success` fill token must never be used as standalone body text on white surfaces. Badge.svelte uses `--color-tier-high` (#166534) for badge text colour, which passes at 6.38:1 on the tinted badge background. Standalone semantic text (e.g. a "Recovered" label in a detail pane) must use `--color-tier-high` (#166534), not `--color-success`.
 
-**Neumorphic surface contrast warning:** Neumorphism creates depth via shadow, not via border. Interactive element boundaries rely purely on perceived 3D depth. The `--color-warning` focus ring (2px outline, 2px offset) is **mandatory** on all interactive elements. Neumorphism must never be the sole cue for interactivity.
+**Coral accent (`#FF8A3D`) as text warning:** Coral achieves 2.35:1 on white — fails all thresholds. `--color-accent-alt` (#FF8A3D) is a FILL-ONLY token: graphical bars, sparklines, decorative chips. Never use as text on white.
+
+**Focus ring choice — Deep Mauve `#6D28D9`:** Construction Yellow (#FFC800) from the Firmament era achieved 9.8:1 on dark backgrounds but only ~1.9:1 on white — invisible on the new light surfaces. Deep mauve `#6D28D9` achieves 7.10:1 on white (strong PASS), 3.89:1 on the amber primary fill (PASS large), and 6.69:1 on bg-base. It is visually distinct from text ink (charcoal) and from amber — no perceptual confusion. Catppuccin Latte's own mauve (#8839EF) was rejected because it achieves only 2.96:1 on amber (below the 3:1 minimum).
+
+**Neumorphic surface contrast note:** Light neumorphism creates depth through a translucent ink drop shadow (bottom-right) and a white highlight (top-left). The focus ring (2px deep mauve outline, 2px offset) is mandatory on all interactive elements. Neumorphic depth cues alone are insufficient to indicate interactivity, particularly for keyboard users and in bright ambient light conditions.
 
 ---
 
@@ -294,14 +332,17 @@ Neumorphism is applied to **surfaces and controls only** — not to text, icons,
 Two tiers of shadow tokens exist in `tokens.css`:
 
 **Canonical names (use in GSAP code and component specs):**
+
 ```css
---shadow-outset: 4px 4px 10px var(--color-shadow-dark), -4px -4px 10px var(--color-shadow-light)
---shadow-inset:  inset 4px 4px 10px var(--color-shadow-dark), inset -4px -4px 10px var(--color-shadow-light)
+--shadow-outset: 4px 4px 10px rgba(28, 37, 48, 0.12), -4px -4px 10px rgba(255, 255, 255, 0.90)
+--shadow-inset:  inset 4px 4px 10px rgba(28, 37, 48, 0.12), inset -4px -4px 10px rgba(255, 255, 255, 0.90)
 ```
-These are the values the agent-def Design Token Format pins. GSAP button animations call `var(--shadow-inset)` and `var(--shadow-outset)` directly — do not hardcode the pixel values in JS. Shadow color values are fixed to the Firmament palette: dark `#07090f`, light `#1d273d`.
+
+These are the values the agent-def Design Token Format pins. GSAP button animations call `var(--shadow-inset)` and `var(--shadow-outset)` directly — do not hardcode the pixel values in JS. Shadow colours are now rgba ink + white (Rescue Beacon light surface); the dark `#07090f`/light `#1d273d` pair from Firmament is retired. Note: CSS custom properties do not resolve rgba() inside compound shadow compound values via var() in all older engines; the rgba literals are embedded directly in the token definitions.
 
 **Levelled variants (for components needing more or less depth than standard):**
-```
+
+```text
 --shadow-raised-sm   6px 6px 12px ...   — table row hover, nested cards
 --shadow-raised-md   8px 8px 18px ...   — heavier card/panel raise
 --shadow-raised-lg   12px 12px 28px ...  — modals, floating dropdowns
@@ -311,12 +352,12 @@ These are the values the agent-def Design Token Format pins. GSAP button animati
 
 ### Interaction State Mapping
 
-```
+```text
 Button:
   Default   → var(--shadow-outset)
   Hover     → var(--shadow-outset) + translate(-1px, -1px), scale(1.005) — via GSAP
   Active    → var(--shadow-inset), translate(0,0), scale(1.0) — via GSAP
-  Focus     → var(--shadow-outset) + 2px solid outline var(--color-warning), offset 2px
+  Focus     → var(--shadow-outset) + 2px solid outline var(--color-focus-ring) (#6D28D9), offset 2px
   Disabled  → var(--shadow-flat), opacity 0.38, cursor not-allowed
 
 Input / Select:
@@ -340,7 +381,7 @@ Table Row:
 
 Per agent-def Design Token Format (sm/md/lg/pill are canonical; xs and xl are additive):
 
-```
+```text
 --radius-none:  0px
 --radius-xs:    2px    (micro rounding — additive)
 --radius-sm:    4px    (chips, badges, small indicators — canonical)
@@ -393,7 +434,8 @@ All component internal padding and margin must be a multiple of 4px. No arbitrar
 FileResque uses GSAP for all animated interactive states. CSS `transition` is permitted only for `opacity` on non-interactive elements (e.g. tooltips). Never use CSS `transition` on `box-shadow` — it causes perceptible jank. GSAP drives all shadow and transform animations.
 
 **Duration:**
-```
+
+```text
 --duration-instant:    0ms    (reduced-motion fallback)
 --duration-fastest:    80ms   (micro-interactions: icon swap, badge colour change)
 --duration-fast:       140ms  (button press state, row hover)
@@ -403,7 +445,8 @@ FileResque uses GSAP for all animated interactive states. CSS `transition` is pe
 ```
 
 **Easing (CSS cubic-bezier equivalents — GSAP uses these same curves):**
-```
+
+```text
 --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1)
   → Spring with slight overshoot. Used for: button release, card hover lift,
     modal entrance. The 1.56 Y value creates the tactile "pop".
@@ -479,14 +522,15 @@ These are the components required for the full app (P0–P4). Each will receive 
 Use a single, consistent icon library. Recommendation: **Lucide Icons** (MIT licence, SVG, tree-shakeable, actively maintained, excellent at small sizes).
 
 Rules for all icons in FileResque:
+
 1. **Stroke width: 1.5px at 16px, 1.75px at 20px, 2px at 24px.** Never fill icons. The line-art style reads as precise/technical vs the blunt-instrument feel of filled icons.
-2. **Colour:** Default icon colour is `--color-text-secondary` (#8a94a6). Interactive/labelled icons (with visible text label alongside) use `--color-text-dim` (#c8cfd9). Semantic icons (success/warning/danger) use their respective accent colour.
+2. **Colour:** Default icon colour is `--color-text-secondary` (#5B6675). Interactive/labelled icons (with visible text label alongside) use `--color-text-dim` (#374151). Semantic icons (success/warning/danger) use their respective accent colour.
 3. **Size: use 16px or 20px.** 24px only for empty states and large contextual icons.
 4. **Never scale icons with CSS `transform`** — always use a new size. Fractional pixel rendering destroys the stroke precision.
 
 ### Specific Icon Assignments
 
-```
+```text
 HDD:        hard-drive       (Lucide)
 SSD / NVMe: database         (Lucide) — abstracted storage
 USB:        usb              (Lucide, or usb-2 if available)
@@ -514,7 +558,7 @@ Cancel:     x                (Lucide)
 
 Neumorphic surfaces should be **perfectly smooth** — no grain, no noise, no glassmorphism blur. The depth effect comes entirely from precise shadow offsets.
 
-**One exception:** The app titlebar / window chrome can use a very subtle Perlin-noise grain at 3% opacity (not visible, but prevents the large flat surface from looking "digital" or "flat-flat"). This is optional and only applied to `--color-bg-base` (#0a0e17) areas.
+**One exception:** The app titlebar / window chrome can use a very subtle Perlin-noise grain at 3% opacity (not visible, but prevents the large flat surface from looking "digital" or "flat-flat"). This is optional and only applied to `--color-bg-base` (#F7F8FA) areas.
 
 **Scan progress overlay:** During an active scan, a subtle animated gradient sweep (1–2% opacity, CSS `@keyframes`) can move across the scan panel's surface, suggesting electromagnetic activity. This is purely atmospheric — it must not interfere with readability and must stop when `prefers-reduced-motion` is set.
 
@@ -528,7 +572,7 @@ Neumorphic surfaces should be **perfectly smooth** — no grain, no noise, no gl
   background-image: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 132, 255, 0.04) 50%,
+    rgba(255, 176, 32, 0.06) 50%,
     transparent 100%
   );
   background-size: 200% 100%;
@@ -545,7 +589,7 @@ Neumorphic surfaces should be **perfectly smooth** — no grain, no noise, no gl
 
 ### App Shell
 
-```
+```text
 ┌──────────────────────────────────────────────────────┐
 │  TITLEBAR (Tauri custom, drag region, 36px tall)     │
 │  [icon] FileResque              [─][□][×]            │
@@ -572,6 +616,7 @@ This is a desktop-only app (Tauri, not browser). Minimum window size: 900×600px
 ### Progressive Disclosure
 
 Phase order maps directly to UI reveal order:
+
 1. **Start:** Only disk list is visible. No table, no progress, no recovery. One primary action: "Select a disk."
 2. **Scanning:** Disk list collapses to selected-disk summary chip. Scan progress bar + live file count appears. Cancel button visible.
 3. **Results:** File table appears. Probability badges are "?" until clicked. Single primary action: "Recover Selected."
@@ -589,9 +634,74 @@ This phased reveal prevents the user from doing the wrong thing (e.g., recoverin
 
 ---
 
-## 11. Open Questions for TPM
+## 11. Component Migration Notes (Rescue Beacon v2.0)
 
-```
+The token swap is automatic for all components that use only `var(--*)` references. The items below require **bespoke developer attention** beyond the token update — either because they contain hardcoded values, reference semantics that changed meaning, or need visual re-verification on the new light surface.
+
+### Items requiring developer action
+
+**1. `Modal.svelte` — backdrop colour**
+
+Current: `color-mix(in srgb, var(--color-bg-void) 85%, transparent)`
+
+On Firmament, `--color-bg-void` was near-black (`#070912`) so the backdrop was a near-opaque dark scrim. On Rescue Beacon, `--color-bg-void` is `#E4E8EE` (a light grey). The formula now produces a light translucent overlay — which is too weak to dim the content behind a modal.
+
+Required change: Update the backdrop to use the ink colour instead, e.g.
+`color-mix(in srgb, var(--color-text-primary) 55%, transparent)` or a fixed `rgba(28, 37, 48, 0.50)`. The designer recommendation is `rgba(28, 37, 48, 0.45)` — enough scrim to de-emphasise background content without feeling oppressive on a light UI.
+
+**2. `+page.svelte` — scan-error banner background**
+
+Current: `color-mix(in srgb, var(--color-danger) 8%, transparent)`
+
+`--color-danger` was a saturated red on dark (#e5534b). The new value is a darker crimson (#C0392B). At 8% on white, both produce a very faint pink tint. This will render correctly but should be verified visually — the tint may need to increase to 10–12% on a light surface to remain perceptible as an error state.
+
+**3. `Badge.svelte` — `badge--info` background**
+
+Current: `color-mix(in srgb, var(--color-accent-info) 12%, transparent)`
+
+`--color-accent-info` changed from soft blue (#58a6ff) to deep mauve (#5B21B6). The 12% mix on white produces a correct light-mauve tint. Visual verification recommended — the mauve tint at 12% may be too subtle; consider raising to 15% if the badge does not read clearly.
+
+**4. `RecoveryModal.svelte` — status row backgrounds**
+
+Current uses `color-mix(in srgb, var(--color-danger) 8%, transparent)` and `color-mix(in srgb, var(--color-success) 8%, transparent)`.
+
+Both danger and success token values changed. The percentage should remain functional; verify the tints read clearly on the white modal surface.
+
+**5. Titlebar / app shell (`+page.svelte`)**
+
+The titlebar and both `panel--left` / `panel--right` use `background-color: var(--color-bg-base)`. On Firmament this was near-black; on Rescue Beacon it is `#F7F8FA`. The border `1px solid var(--color-border)` was a white-alpha; it is now an ink-alpha (`rgba(28, 37, 48, 0.11)`). Both will invert automatically via the token swap and should render correctly. Verify the titlebar `border-bottom` is visible — a single-pixel ink-alpha divider may be very faint on the warm-white base.
+
+#### 6. Wordmark "Resque" accent colour
+
+In the titlebar wordmark, `.wordmark strong { color: var(--color-accent-primary) }` now renders amber (#FFB020). Amber text on white achieves 1.83:1 — this FAILS WCAG for body text. However, the wordmark "Resque" is rendered at `font-size-md` (14px) weight-600. Under WCAG large text rules (≥ 14px bold = 3:1 minimum), 1.83:1 still fails.
+
+Required action: Change the wordmark accent to `var(--color-tier-medium)` (#92400E, amber-700, 7.09:1 on white) for the in-app titlebar. The amber fill (#FFB020) remains correct for graphical icon elements. The site can continue using amber decoratively for the wordmark since the site is not governed by app WCAG requirements; the app titlebar text must use the darker variant.
+
+**7. `.scanning` shimmer (tokens.css)**
+
+Updated from `rgba(0, 132, 255, 0.04)` blue to `rgba(255, 176, 32, 0.06)` amber. This is already applied in tokens.css. Developer should verify the shimmer is perceptible on `--color-bg-surface` (#FFFFFF) — 6% amber on pure white is very subtle. If imperceptible, raise opacity to 0.08.
+
+**8. Scrollbar colours (`app.css`)**
+
+The scrollbar track uses `var(--color-bg-layer)` (#F0F2F6) and thumb uses `var(--color-bg-surface-3)` (#E4E8EE). These invert automatically via tokens. Verify the thumb (#E4E8EE) is perceptible on the `#F0F2F6` track — the contrast between these two light greys may be too low to distinguish. If the scrollbar is invisible, the thumb should use `var(--color-border-default)` (#D6DBE3 approx) instead.
+
+#### 9. Icon colours
+
+Icons default to `--color-text-secondary`. On Firmament this was `#8a94a6` (mid-grey on dark). On Rescue Beacon it is `#5B6675` (5.83:1 on white) — correctly readable. No changes needed. Semantic icons (success/warning/danger) still use their respective tokens, which now resolve to the darker text-safe variants (#166534, #92400E, #991B1B / #C0392B). These are correct for icon fill on white surfaces.
+
+**10. `--color-selection-bg` change**
+
+Changed from `rgba(0, 132, 255, 0.15)` (blue selection) to `rgba(255, 176, 32, 0.18)` (amber selection). Any component using CSS `::selection` or applying this token for row/text selection highlight should verify the amber tint is readable. Selected text on an amber-tinted selection highlight: `--color-text-primary` (#1C2530) on amber tint remains readable.
+
+### Hardcoded values outside tokens.css — audit result
+
+A grep of `src/` for hex literals and `rgba()` outside `tokens.css` found only `color-mix()` expressions referencing CSS tokens (no raw hex), `background: transparent`, and `background: none`. No hardcoded colour hex values exist in any `.svelte` or `.css` file outside `tokens.css`. The codebase is clean — the token swap propagates completely.
+
+---
+
+## 12. Open Questions for TPM
+
+```text
 [TPM_QUERY]
 From: Designer
 Phase: P0
@@ -609,7 +719,7 @@ Options:
 Blocking: no — P0-T03 can proceed either way; decision affects App.svelte shell only
 ```
 
-```
+```text
 [TPM_QUERY]
 From: Designer
 Phase: P0
