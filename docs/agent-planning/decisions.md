@@ -265,3 +265,29 @@
 
 **Rationale:** Each refinement uses data the system actually has (sizes and ids from the scan/enumeration) instead of data it often lacks (per-file estimates, serials), while staying on the safe side of every check.
 **Consequences:** Tauri commands: `pick_destination_folder(app) -> Result<Option<String>, AppError>` and `preflight_recovery(entries: Vec<DeletedFileEntry>, source: DiskInfo, dest_path: String) -> Result<PreflightResult, AppError>`. `PreflightError` is now `#[serde(tag = "kind")]` (internally tagged) to match the pre-existing `src/lib/types.ts` discriminated union. `tauri-plugin-dialog` added (invoked only from Rust; no new frontend capability). `libc` added to `crates/disk` (macOS) for `statfs`.
+
+---
+
+## [DECISION-019] — Windows Packaging (P5-T02) Skipped for MVP
+
+**Date:** 2026-07-01
+**Decided by:** User + TPM
+**Context:** P5-T02 (Windows NSIS/MSI installer, `signtool`, UAC manifest) requires a Windows environment to build and validate. The maintainer has no way to test on Windows.
+**Decision:** Skip P5-T02. macOS remains the primary (and only shipped) target for this release. The Windows-specific code already written (disk enumeration IOCTLs, NTFS scanner scaffolding) stays in-tree behind `#[cfg(target_os = "windows")]` but is unpackaged and unverified.
+**Consequences:** No Windows installer or CI build is gated on green for release. If Windows shipping is revived later, P5-T02 is re-opened as new scope. `feature-breakdown-phase.md` P5-T02 is superseded by this decision.
+
+---
+
+## [DECISION-020] — Project Licence: GPL-3.0-or-later (Strong Copyleft)
+
+**Date:** 2026-07-01
+**Decided by:** User
+**Context:** The maintainer wants FileResque to be "fully open source, always open source" — i.e. it and every derivative must remain free software, never made proprietary or paywalled-as-closed.
+**Options considered:**
+
+- A: Permissive (MIT/Apache-2.0) — allows anyone to close-source a fork
+- B: **GPL-3.0-or-later** — copyleft; derivatives must stay GPL
+- C: AGPL-3.0 — copyleft + network-use clause
+**Decision:** B — GPL-3.0-or-later.
+**Rationale:** Copyleft is required for the "always open source" goal (rules out A). GPLv3 (not v2) is mandatory because the dependency tree contains Apache-2.0 crates, which are GPL-compatible only under v3. AGPL's extra clause (C) protects a network-service loophole that does not apply — FileResque is a zero-network desktop app — so plain GPLv3 is the correct fit. GPLv3 also adds an explicit patent grant and anti-tivoization terms.
+**Consequences:** `license = "GPL-3.0-or-later"` set on all four crates (via `[workspace.package]`) and in `package.json`. The prior README "MIT" line was corrected. The `LICENSE` file must contain the canonical GPLv3 text (fetched from gnu.org — see setup notes). `deny.toml`'s *dependency* licence allow-list is unaffected (it governs third-party deps, not FileResque's own licence). GPL permits selling copies but forbids proprietary relicensing; brand protection for the name/logo is handled separately as a project mark, not by the code licence.

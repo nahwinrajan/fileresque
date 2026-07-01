@@ -1,0 +1,70 @@
+name: Release (macOS)
+
+# Builds a universal macOS .dmg and attaches it to a GitHub Release so the
+# website's Download button (→ releases/latest) serves a real installer.
+#
+# Trigger: push a version tag, e.g.
+#   git tag v0.1.0 && git push origin v0.1.0
+# The release is created as a DRAFT — review it, then click Publish. Publishing
+# makes it the "latest" release the download button points at.
+#
+# NOTE: this produces an UNSIGNED / ad-hoc build (per DECISION: no Apple Developer
+# cert). It runs on the downloader's Mac after a one-time Gatekeeper bypass. To
+# notarise later, add the APPLE_* secrets and pass them through to tauri-action.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write # create the release + upload assets
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          # Both arches so tauri can produce a universal binary.
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install frontend deps
+        run: bun install --frozen-lockfile
+
+      - name: Build .dmg + create draft release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "FileResque ${{ github.ref_name }}"
+          releaseBody: |
+            Native macOS file-recovery app. Universal build (Apple Silicon + Intel), macOS 12+.
+
+            **First launch (unsigned build):** right-click the app → Open, or
+            System Settings → Privacy & Security → "Open Anyway".
+
+            Verify your download against `SHA256SUMS.txt` below.
+          releaseDraft: true
+          prerelease: false
+          args: --target universal-apple-darwin
+
+      - name: Publish checksums for authenticity
+        run: |
+          set -euo pipefail
+          DMG_DIR="src-tauri/target/universal-apple-darwin/release/bundle/dmg"
+          shasum -a 256 "$DMG_DIR"/*.dmg | sed "s|$DMG_DIR/||" > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          gh release upload "${{ github.ref_name }}" SHA256SUMS.txt --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

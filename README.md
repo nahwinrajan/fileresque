@@ -188,4 +188,15 @@ See `docs/agent-planning/decisions.md` for a log of all architectural and produc
 
 ## Licence
 
-MIT © FileResque Contributors
+**GNU General Public License v3.0 or later (GPL-3.0-or-later).**
+
+FileResque is free software: you can use, study, share, and modify it. Any
+distributed derivative must also be free software under the same licence — it can
+never be made proprietary or hidden behind a closed paywall. See [LICENSE](LICENSE)
+for the full text.
+
+Copyright © 2026 FileResque Contributors.
+
+> The **FileResque** name and logo are project marks. The GPL covers the code, not
+> the brand — forks are welcome but should not use the FileResque name/logo in a way
+> that implies they are the official build.

@@ -1,10 +1,11 @@
 <!doctype html>
 <!--
-  FileResque — GitHub Pages landing page.
+  FileResque — GitHub Pages landing page. "Rescue Beacon" theme:
+  matte-white / clinical-clean base + warm amber glow accent.
 
-  UPDATE BEFORE PUBLISHING: replace the owner/repo in the two links below if the
-  repository is not github.com/nahwinrajan/fileresque.
-    - Download button → releases/latest (always resolves to the newest release)
+  UPDATE BEFORE PUBLISHING: if the repo is not github.com/nahwinrajan/fileresque,
+  replace the owner/repo in the links below.
+    - Download button → releases/latest (always the newest release)
     - GitHub button   → the repo root
 -->
 <html lang="en">
@@ -14,71 +15,68 @@
     <title>FileResque — recover deleted files on macOS</title>
     <meta
       name="description"
-      content="A native macOS app that scans your disks for deleted files, tells you how likely each one is to come back, and recovers them safely to another drive. Free, open source, and fully offline."
+      content="A native macOS app that scans your disk for deleted files, tells you honestly how likely each one is to come back, and recovers it safely to another drive. Free, open source, fully offline."
     />
-    <link rel="icon" href="favicon.png" />
-
-    <!-- Open Graph / social preview -->
+    <!-- Inline SVG favicon: the amber beacon face. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23FFB020'/%3E%3Ccircle cx='12' cy='16' r='2.4' fill='%231C2530'/%3E%3Ccircle cx='20' cy='16' r='2.4' fill='%231C2530'/%3E%3C/svg%3E"
+    />
     <meta property="og:title" content="FileResque — recover deleted files on macOS" />
     <meta
       property="og:description"
-      content="Scan for deleted files, see recovery odds up front, and restore them safely. Free, open source, works completely offline."
+      content="See recovery odds up front, then restore safely to another drive. Free, open source, works completely offline."
     />
     <meta property="og:type" content="website" />
 
     <style>
       :root {
-        --void: #070912;
-        --surface: #121826;
-        --surface-2: #1a2234;
-        --border: #242d40;
-        --accent: #0084ff;
-        --gold: #ffc800;
-        --green: #3fb950;
-        --text: #f9f8f6;
-        --dim: #c8cfd9;
-        --muted: #8a94a6;
-        --radius: 12px;
+        --bg: #f7f8fa;
+        --surface: #ffffff;
+        --ink: #1c2530;
+        --muted: #5b6675;
+        --line: #e4e8ee;
+        --blue: #3a7bd5;
+        --blue-dark: #2c63b0;
+        --amber: #ffb020;
+        --amber-soft: #ffd873;
+        --coral: #ff8a3d;
+        --green: #2f9e5f;
+        --radius: 16px;
         --maxw: 1080px;
         --font:
           -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
           Helvetica, Arial, sans-serif;
         --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
       }
-
       * {
         box-sizing: border-box;
       }
-
       html {
         scroll-behavior: smooth;
       }
-
       body {
         margin: 0;
         font-family: var(--font);
-        color: var(--text);
+        color: var(--ink);
         background:
-          radial-gradient(1200px 600px at 50% -10%, #16203a 0%, transparent 60%),
-          var(--void);
+          radial-gradient(900px 500px at 50% -8%, #fff6e6 0%, transparent 62%),
+          var(--bg);
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
       }
-
       a {
-        color: var(--accent);
+        color: var(--blue);
         text-decoration: none;
       }
       a:hover {
         text-decoration: underline;
       }
-
       :focus-visible {
-        outline: 2px solid var(--gold);
+        outline: 3px solid var(--blue);
         outline-offset: 3px;
-        border-radius: 4px;
+        border-radius: 6px;
       }
-
       .wrap {
         max-width: var(--maxw);
         margin: 0 auto;
@@ -90,24 +88,52 @@
         position: sticky;
         top: 0;
         z-index: 10;
-        background: color-mix(in srgb, var(--void) 82%, transparent);
+        background: color-mix(in srgb, var(--bg) 80%, transparent);
         backdrop-filter: blur(10px);
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid var(--line);
       }
       .nav {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        height: 60px;
+        height: 64px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand .mark {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        background: radial-gradient(circle at 50% 42%, var(--amber-soft), var(--amber));
+        position: relative;
+        box-shadow: 0 0 14px rgba(255, 176, 32, 0.5);
+      }
+      .brand .mark::before,
+      .brand .mark::after {
+        content: "";
+        position: absolute;
+        top: 13px;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--ink);
+      }
+      .brand .mark::before {
+        left: 9px;
+      }
+      .brand .mark::after {
+        right: 9px;
       }
       .wordmark {
         font-size: 20px;
         letter-spacing: -0.01em;
-        color: var(--text);
       }
       .wordmark b {
-        color: var(--accent);
-        font-weight: 600;
+        color: var(--blue);
+        font-weight: 700;
       }
       .nav-links {
         display: flex;
@@ -116,40 +142,46 @@
         font-size: 15px;
       }
       .nav-links a {
-        color: var(--dim);
+        color: var(--muted);
       }
 
       /* ── Hero ───────────────────────────────────────────────── */
       .hero {
-        padding: 88px 0 64px;
-        text-align: center;
+        padding: 80px 0 56px;
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 40px;
+        align-items: center;
       }
       .eyebrow {
+        display: inline-block;
         font-size: 12px;
-        letter-spacing: 0.14em;
+        font-weight: 600;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: var(--muted);
+        color: var(--coral);
+        background: #fff2e3;
+        border: 1px solid #ffdcc0;
+        padding: 5px 12px;
+        border-radius: 999px;
         margin-bottom: 20px;
       }
       h1 {
-        font-size: clamp(34px, 6vw, 56px);
+        font-size: clamp(34px, 5.2vw, 52px);
         line-height: 1.08;
         letter-spacing: -0.02em;
-        margin: 0 auto 20px;
-        max-width: 16ch;
-        font-weight: 700;
+        margin: 0 0 18px;
+        font-weight: 800;
       }
       .lede {
-        font-size: clamp(17px, 2.4vw, 20px);
-        color: var(--dim);
-        max-width: 60ch;
-        margin: 0 auto 36px;
+        font-size: clamp(17px, 2.2vw, 19px);
+        color: var(--muted);
+        max-width: 52ch;
+        margin: 0 0 30px;
       }
-
       .cta {
         display: flex;
         gap: 14px;
-        justify-content: center;
         flex-wrap: wrap;
       }
       .btn {
@@ -157,13 +189,14 @@
         align-items: center;
         gap: 10px;
         padding: 14px 24px;
-        border-radius: 10px;
+        border-radius: 12px;
         font-size: 16px;
         font-weight: 600;
         border: 1px solid transparent;
         cursor: pointer;
         transition:
           transform 0.12s ease,
+          box-shadow 0.12s ease,
           background 0.12s ease;
       }
       .btn:hover {
@@ -171,120 +204,50 @@
         transform: translateY(-1px);
       }
       .btn-primary {
-        background: var(--accent);
+        background: var(--blue);
         color: #fff;
+        box-shadow: 0 8px 20px -8px rgba(58, 123, 213, 0.6);
       }
       .btn-primary:hover {
-        background: #1a90ff;
+        background: var(--blue-dark);
       }
       .btn-secondary {
-        background: var(--surface-2);
-        color: var(--text);
-        border-color: var(--border);
+        background: var(--surface);
+        color: var(--ink);
+        border-color: var(--line);
       }
       .btn-secondary:hover {
         border-color: var(--muted);
       }
       .req {
-        margin-top: 16px;
+        margin-top: 14px;
         font-size: 13px;
         color: var(--muted);
+      }
+      .firstrun {
+        margin-top: 18px;
+        font-size: 13px;
+        color: var(--muted);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--amber);
+        border-radius: 10px;
+        padding: 12px 16px;
+        max-width: 46ch;
+      }
+      .firstrun b {
+        color: var(--ink);
       }
 
-      /* ── App window mockup ──────────────────────────────────── */
-      .shot {
-        margin: 56px auto 0;
-        max-width: 860px;
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        overflow: hidden;
-        box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.7);
-        background: var(--surface);
-      }
-      .shot-bar {
+      /* ── Mascot ─────────────────────────────────────────────── */
+      .mascot-wrap {
         display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 16px;
-        border-bottom: 1px solid var(--border);
+        justify-content: center;
       }
-      .dot {
-        width: 11px;
-        height: 11px;
-        border-radius: 50%;
-        background: #3a4256;
-      }
-      .shot-title {
-        margin-left: 10px;
-        font-size: 13px;
-        color: var(--muted);
-      }
-      .shot-body {
-        display: grid;
-        grid-template-columns: 220px 1fr;
-        min-height: 320px;
-      }
-      .shot-side {
-        border-right: 1px solid var(--border);
-        padding: 16px;
-      }
-      .disk {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        padding: 12px;
-        border-radius: 8px;
-        background: var(--surface-2);
-        border: 1px solid var(--border);
-        margin-bottom: 10px;
-      }
-      .disk.sel {
-        border-color: var(--accent);
-      }
-      .disk .n {
-        font-size: 14px;
-        color: var(--text);
-      }
-      .disk .m {
-        font-size: 12px;
-        color: var(--muted);
-        font-family: var(--mono);
-      }
-      .shot-main {
-        padding: 16px;
-      }
-      .row {
-        display: grid;
-        grid-template-columns: 20px 1fr auto auto;
-        gap: 12px;
-        align-items: center;
-        padding: 9px 8px;
-        border-bottom: 1px solid var(--border);
-        font-size: 13px;
-        font-family: var(--mono);
-        color: var(--dim);
-      }
-      .row .ic {
-        color: var(--muted);
-      }
-      .pill {
-        font-family: var(--font);
-        font-size: 11px;
-        font-weight: 600;
-        padding: 2px 8px;
-        border-radius: 999px;
-      }
-      .pill.hi {
-        color: var(--green);
-        background: color-mix(in srgb, var(--green) 15%, transparent);
-      }
-      .pill.md {
-        color: var(--gold);
-        background: color-mix(in srgb, var(--gold) 15%, transparent);
-      }
-      .pill.lo {
-        color: var(--muted);
-        background: color-mix(in srgb, var(--muted) 15%, transparent);
+      .mascot {
+        width: 100%;
+        max-width: 320px;
+        filter: drop-shadow(0 24px 40px rgba(28, 37, 48, 0.14));
       }
 
       /* ── Sections ───────────────────────────────────────────── */
@@ -296,6 +259,7 @@
         letter-spacing: -0.01em;
         text-align: center;
         margin: 0 0 12px;
+        font-weight: 800;
       }
       .sub {
         text-align: center;
@@ -303,7 +267,6 @@
         max-width: 56ch;
         margin: 0 auto 48px;
       }
-
       .grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -311,9 +274,10 @@
       }
       .card {
         background: var(--surface);
-        border: 1px solid var(--border);
+        border: 1px solid var(--line);
         border-radius: var(--radius);
-        padding: 24px;
+        padding: 26px;
+        box-shadow: 0 1px 2px rgba(28, 37, 48, 0.04);
       }
       .card h3 {
         margin: 0 0 8px;
@@ -324,19 +288,24 @@
         color: var(--muted);
         font-size: 15px;
       }
-      .card .k {
-        width: 34px;
-        height: 34px;
-        border-radius: 8px;
+      .chip {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
         display: grid;
         place-items: center;
-        margin-bottom: 14px;
-        background: var(--surface-2);
-        border: 1px solid var(--border);
-        font-size: 18px;
+        margin-bottom: 16px;
+        font-size: 20px;
+        background: #fff4e0;
+        border: 1px solid #ffe1bd;
       }
 
       /* ── Steps ──────────────────────────────────────────────── */
+      .band-light {
+        background: var(--surface);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
       .steps {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -351,11 +320,11 @@
         content: counter(step);
         display: grid;
         place-items: center;
-        width: 36px;
-        height: 36px;
+        width: 38px;
+        height: 38px;
         border-radius: 50%;
-        border: 1px solid var(--accent);
-        color: var(--accent);
+        background: var(--blue);
+        color: #fff;
         font-weight: 700;
         margin-bottom: 14px;
       }
@@ -371,18 +340,19 @@
 
       /* ── Privacy band ───────────────────────────────────────── */
       .band {
-        background:
-          linear-gradient(180deg, transparent, rgba(0, 132, 255, 0.05)),
-          var(--surface);
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
         text-align: center;
+        background: linear-gradient(180deg, #fffaf0, var(--bg));
+        border-top: 1px solid var(--line);
       }
       .band .tag {
+        display: inline-block;
         font-family: var(--mono);
-        color: var(--gold);
+        color: #a9600b;
+        background: #fff2d6;
+        border: 1px solid #ffe1a8;
+        padding: 8px 16px;
+        border-radius: 999px;
         font-size: 14px;
-        letter-spacing: 0.04em;
       }
 
       /* ── Honesty note ───────────────────────────────────────── */
@@ -390,21 +360,21 @@
         max-width: 68ch;
         margin: 0 auto;
         background: var(--surface);
-        border: 1px solid var(--border);
-        border-left: 3px solid var(--gold);
-        border-radius: 8px;
-        padding: 20px 24px;
-        color: var(--dim);
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--amber);
+        border-radius: 12px;
+        padding: 22px 26px;
+        color: var(--muted);
         font-size: 15px;
       }
       .note b {
-        color: var(--text);
+        color: var(--ink);
       }
 
       /* ── Footer ─────────────────────────────────────────────── */
       footer {
-        border-top: 1px solid var(--border);
-        padding: 40px 0;
+        border-top: 1px solid var(--line);
+        padding: 36px 0;
         color: var(--muted);
         font-size: 14px;
       }
@@ -412,31 +382,45 @@
         display: flex;
         justify-content: space-between;
         flex-wrap: wrap;
-        gap: 16px;
+        gap: 12px;
       }
       .foot a {
-        color: var(--dim);
+        color: var(--muted);
       }
 
-      @media (max-width: 720px) {
-        .grid,
-        .steps,
-        .shot-body {
+      @media (max-width: 820px) {
+        .hero {
           grid-template-columns: 1fr;
+          text-align: center;
+          padding-top: 56px;
         }
-        .shot-side {
-          border-right: none;
-          border-bottom: 1px solid var(--border);
+        .lede {
+          margin-inline: auto;
+        }
+        .cta {
+          justify-content: center;
+        }
+        .firstrun {
+          margin-inline: auto;
+        }
+        .mascot-wrap {
+          order: -1;
+        }
+        .grid,
+        .steps {
+          grid-template-columns: 1fr;
         }
         .nav-links a:not(.gh) {
           display: none;
         }
       }
 
-      /* Subtle entrance, disabled for anyone who prefers less motion. */
       @media (prefers-reduced-motion: no-preference) {
         .fade {
           animation: fade 0.6s ease both;
+        }
+        .float {
+          animation: float 5s ease-in-out infinite;
         }
         @keyframes fade {
           from {
@@ -448,6 +432,15 @@
             transform: none;
           }
         }
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
       }
     </style>
   </head>
@@ -455,7 +448,10 @@
   <body>
     <header>
       <div class="wrap nav">
-        <span class="wordmark">File<b>Resque</b></span>
+        <span class="brand">
+          <span class="mark" aria-hidden="true"></span>
+          <span class="wordmark">File<b>Resque</b></span>
+        </span>
         <nav class="nav-links" aria-label="Primary">
           <a href="#features">Features</a>
           <a href="#how">How it works</a>
@@ -466,14 +462,14 @@
 
     <main>
       <!-- ── Hero ─────────────────────────────────────────────── -->
-      <section class="hero">
-        <div class="wrap fade">
-          <p class="eyebrow">Recovery utility for macOS</p>
-          <h1>Get your deleted files back.</h1>
+      <section class="hero wrap">
+        <div class="fade">
+          <span class="eyebrow">Recovery utility for macOS</span>
+          <h1>A calm hand when a file goes missing.</h1>
           <p class="lede">
             FileResque scans your disk for deleted files, tells you honestly how
-            likely each one is to come back, and restores it to a safe location.
-            No account, no upload, no guesswork.
+            likely each one is to come back, and restores it safely to another
+            drive. No account, no upload, no false hope.
           </p>
           <div class="cta">
             <a
@@ -490,37 +486,75 @@
             </a>
           </div>
           <p class="req">Universal build · macOS 12 Monterey or later · Apple Silicon &amp; Intel</p>
+          <p class="firstrun">
+            <b>First launch:</b> this is a free, unsigned build — on the first open,
+            right-click the app → <b>Open</b> (or System Settings → Privacy &amp;
+            Security → <b>Open Anyway</b>). One time only.
+          </p>
+        </div>
 
-          <!-- App window mockup (pure CSS, no external image) -->
-          <div class="shot" role="img" aria-label="Screenshot of the FileResque app showing a disk list on the left and a table of recoverable deleted files with probability tags on the right.">
-            <div class="shot-bar">
-              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-              <span class="shot-title">FileResque</span>
-            </div>
-            <div class="shot-body">
-              <div class="shot-side">
-                <div class="disk sel">
-                  <span class="n">Macintosh HD</span>
-                  <span class="m">disk3 · APFS · 512 GB</span>
-                </div>
-                <div class="disk">
-                  <span class="n">Field SSD</span>
-                  <span class="m">disk5 · APFS · 1 TB</span>
-                </div>
-                <div class="disk">
-                  <span class="n">Backup HDD</span>
-                  <span class="m">disk6 · HFS+ · 2 TB</span>
-                </div>
-              </div>
-              <div class="shot-main">
-                <div class="row"><span class="ic" aria-hidden="true">▢</span><span>quarterly_report.pdf</span><span>2.1 MB</span><span class="pill hi">High</span></div>
-                <div class="row"><span class="ic" aria-hidden="true">▤</span><span>DSC_4471.jpg</span><span>6.8 MB</span><span class="pill hi">High</span></div>
-                <div class="row"><span class="ic" aria-hidden="true">♪</span><span>demo_take3.wav</span><span>41 MB</span><span class="pill md">Medium</span></div>
-                <div class="row"><span class="ic" aria-hidden="true">▷</span><span>keynote_final.mov</span><span>320 MB</span><span class="pill md">Medium</span></div>
-                <div class="row"><span class="ic" aria-hidden="true">◆</span><span>notes.tar.gz</span><span>88 KB</span><span class="pill lo">Low</span></div>
-              </div>
-            </div>
-          </div>
+        <!-- Hooded rescuer mascot with a glowing amber beacon face. -->
+        <div class="mascot-wrap">
+          <svg
+            class="mascot float"
+            viewBox="0 0 300 320"
+            role="img"
+            aria-label="FileResque mascot: a friendly hooded rescuer in matte white with a warm glowing amber face."
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <radialGradient id="glow" cx="50%" cy="42%" r="60%">
+                <stop offset="0%" stop-color="#FFE8A8" />
+                <stop offset="55%" stop-color="#FFB020" />
+                <stop offset="100%" stop-color="#F59410" />
+              </radialGradient>
+              <linearGradient id="hood" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#FFFFFF" />
+                <stop offset="100%" stop-color="#EEF1F6" />
+              </linearGradient>
+            </defs>
+
+            <!-- soft ground shadow -->
+            <ellipse cx="150" cy="300" rx="86" ry="14" fill="#1C2530" opacity="0.08" />
+
+            <!-- body / hoodie -->
+            <path
+              d="M150 120
+                 C205 120 232 156 236 208
+                 C239 250 232 286 150 286
+                 C68 286 61 250 64 208
+                 C68 156 95 120 150 120 Z"
+              fill="url(#hood)"
+              stroke="#E4E8EE"
+              stroke-width="2"
+            />
+            <!-- little pocket -->
+            <path d="M120 236 h60 a10 10 0 0 1 -10 20 h-40 a10 10 0 0 1 -10 -20 Z"
+              fill="#F4F6F9" stroke="#E4E8EE" stroke-width="2" />
+
+            <!-- hood shell -->
+            <path
+              d="M150 34
+                 C206 34 244 78 244 138
+                 C244 158 232 168 214 168
+                 C214 120 188 96 150 96
+                 C112 96 86 120 86 168
+                 C68 168 56 158 56 138
+                 C56 78 94 34 150 34 Z"
+              fill="url(#hood)"
+              stroke="#E4E8EE"
+              stroke-width="2"
+            />
+
+            <!-- glowing beacon face -->
+            <circle cx="150" cy="132" r="70" fill="#FFB020" opacity="0.18" />
+            <rect x="98" y="92" width="104" height="92" rx="42" fill="url(#glow)" />
+            <circle cx="132" cy="138" r="8.5" fill="#1C2530" />
+            <circle cx="168" cy="138" r="8.5" fill="#1C2530" />
+            <!-- tiny highlight -->
+            <circle cx="128" cy="134" r="2.6" fill="#FFF6DE" />
+            <circle cx="164" cy="134" r="2.6" fill="#FFF6DE" />
+          </svg>
         </div>
       </section>
 
@@ -529,12 +563,12 @@
         <div class="wrap">
           <h2>Built for the moment a file goes missing</h2>
           <p class="sub">
-            The design goal is calm competence: find the drive, show what's
-            recoverable, and get out of your way.
+            Calm competence over panic: find the drive, show what's recoverable,
+            and get out of your way.
           </p>
           <div class="grid">
             <div class="card">
-              <div class="k" aria-hidden="true">🎯</div>
+              <div class="chip" aria-hidden="true">🎯</div>
               <h3>Honest recovery odds</h3>
               <p>
                 Every file is rated High, Medium, or Low before you commit, based
@@ -542,25 +576,23 @@
               </p>
             </div>
             <div class="card">
-              <div class="k" aria-hidden="true">🔒</div>
+              <div class="chip" aria-hidden="true">🔒</div>
               <h3>Never touches the network</h3>
               <p>
-                FileResque makes zero network calls. Your file names and data
-                stay on your machine — there's nothing to upload and nowhere to
-                leak.
+                FileResque makes zero network calls. Your file names and data stay
+                on your machine — there's nothing to upload and nowhere to leak.
               </p>
             </div>
             <div class="card">
-              <div class="k" aria-hidden="true">🧭</div>
+              <div class="chip" aria-hidden="true">🧭</div>
               <h3>Safe by design</h3>
               <p>
-                Recovers to a different drive so it never overwrites the data
-                it's trying to rescue, and verifies each file with a SHA-256
-                digest.
+                Recovers only to a different drive, so it never overwrites the data
+                it's rescuing, and verifies every file with a SHA-256 digest.
               </p>
             </div>
             <div class="card">
-              <div class="k" aria-hidden="true">🗂️</div>
+              <div class="chip" aria-hidden="true">🗂️</div>
               <h3>APFS &amp; HFS+</h3>
               <p>
                 Reads Apple's modern and legacy filesystems directly at the block
@@ -568,19 +600,19 @@
               </p>
             </div>
             <div class="card">
-              <div class="k" aria-hidden="true">⚡</div>
-              <h3>Native and fast</h3>
+              <div class="chip" aria-hidden="true">⚡</div>
+              <h3>Light on your Mac</h3>
               <p>
-                A real desktop app built in Rust, not a web wrapper. Scans large
-                disks without freezing and streams results as it finds them.
+                Built in Rust. Streams files block by block, so recovering a 10 GB
+                video uses kilobytes of memory, not gigabytes.
               </p>
             </div>
             <div class="card">
-              <div class="k" aria-hidden="true">🆓</div>
+              <div class="chip" aria-hidden="true">💛</div>
               <h3>Free and open source</h3>
               <p>
-                No licence key, no trial wall, no upsell. Read the code, build it
-                yourself, or send a patch.
+                GPLv3 — no licence key, no trial wall, no upsell. Read the code,
+                build it yourself, or send a patch.
               </p>
             </div>
           </div>
@@ -588,31 +620,22 @@
       </section>
 
       <!-- ── How it works ─────────────────────────────────────── -->
-      <section id="how" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+      <section id="how" class="band-light">
         <div class="wrap">
           <h2>Three steps</h2>
           <p class="sub">From "oh no" to "got it back" without a manual.</p>
           <div class="steps">
             <div class="step">
               <h3>Pick a disk</h3>
-              <p>
-                Grant Full Disk Access once, choose the drive the file was on, and
-                start a scan.
-              </p>
+              <p>Grant Full Disk Access once, choose the drive the file was on, and start a scan.</p>
             </div>
             <div class="step">
               <h3>Check the odds</h3>
-              <p>
-                Click any deleted file to see its recovery probability and how
-                much of it is still readable.
-              </p>
+              <p>Click any deleted file to see its recovery probability and how much is still readable.</p>
             </div>
             <div class="step">
               <h3>Recover it</h3>
-              <p>
-                Point FileResque at another drive and it writes the file back,
-                verified byte-for-byte.
-              </p>
+              <p>Point FileResque at another drive and it writes the file back, verified byte-for-byte.</p>
             </div>
           </div>
         </div>
@@ -626,7 +649,7 @@
             Recovery software asks for the keys to your whole disk. FileResque
             earns that trust by staying completely offline.
           </p>
-          <p class="tag">// Zero network. Ever.</p>
+          <span class="tag">// Zero network. Ever.</span>
         </div>
       </section>
 
@@ -636,19 +659,18 @@
           <p class="note">
             <b>Before you scan:</b> if a file really matters, stop using the drive
             it was on right away. Every time the disk writes new data, it can land
-            on top of what you're trying to recover. FileResque can't promise a
-            file back — deletion, TRIM on SSDs, and reuse all work against
-            recovery — but it will tell you the truth about your odds instead of
-            selling you false hope.
+            on top of what you're trying to recover. FileResque can't promise a file
+            back — deletion, TRIM on SSDs, and reuse all work against recovery — but
+            it will tell you the truth about your odds instead of selling you false
+            hope.
           </p>
         </div>
       </section>
     </main>
 
-    <!-- ── Footer ─────────────────────────────────────────────── -->
     <footer>
       <div class="wrap foot">
-        <span>© FileResque · Open source · Not affiliated with Apple Inc.</span>
+        <span>© 2026 FileResque · GPLv3 · Not affiliated with Apple Inc.</span>
         <span>
           <a href="https://github.com/nahwinrajan/fileresque">GitHub</a> ·
           <a href="https://github.com/nahwinrajan/fileresque/releases/latest">Downloads</a> ·

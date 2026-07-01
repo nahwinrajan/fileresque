@@ -7,6 +7,12 @@ members = [
 ]
 resolver = "2"
 
+# Shared package metadata. FileResque is copyleft — GPLv3-or-later keeps the
+# project (and every derivative) permanently open source, and is compatible with
+# the Apache-2.0 dependencies in the tree (GPLv2 would not be).
+[workspace.package]
+license = "GPL-3.0-or-later"
+
 # Declare `fuzzing` as a known cfg key so `#[cfg(fuzzing)]` (set by cargo-fuzz via
 # RUSTFLAGS='--cfg fuzzing') does not trigger `unexpected_cfgs` warnings.
 [workspace.lints.rust]
